@@ -24,6 +24,10 @@ export function createGameController({ eventBus, gameState, beatOrchestrator, ui
     ui.renderStatus(payload);
   });
 
+  eventBus.on("history:update", payload => {
+    ui.renderHistory(payload);
+  });
+
   function start() {
     loop.start();
     beatOrchestrator.startIntroBeat();

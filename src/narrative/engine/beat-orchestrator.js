@@ -31,8 +31,18 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     gameState.narrative.beatIndex += 1;
     gameState.narrative.pendingChoices = choices || [];
 
+    // Track in history
+    gameState.narrative.history.push({
+      beatId: id,
+      title: text.title || "",
+      body: text.body || "",
+      phase,
+      timestamp: Date.now()
+    });
+
     eventBus.emit("narrative:update", text);
     eventBus.emit("choices:update", { choices });
+    eventBus.emit("history:update", { history: gameState.narrative.history });
     eventBus.emit("status:update", {});
   }
 
