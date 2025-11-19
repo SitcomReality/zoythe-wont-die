@@ -24,7 +24,10 @@ export async function generateBeatContent({ gameState, instructions, beatId }) {
       tone: world.tone,
       threat: world.homeThreat?.name,
       macGuffin: world.primaryMacGuffin?.name,
-      tags: world.tags
+      tags: world.tags,
+      macGuffinStatus: world.macGuffinStatus,
+      homeThreatLevel: world.homeThreatLevel,
+      omensSeen: world.omensSeen
     },
     history: recentHistory
   };
@@ -48,7 +51,9 @@ Return ONLY valid JSON matching this schema:
       "classification": ["string (must be from valid list)"],
       "effects": { 
         "player": { "stat_name": integer },
-        "world": { "property_name": value }
+        "world": { 
+          "property_name": value
+        }
       }
     }
   ]
@@ -56,7 +61,11 @@ Return ONLY valid JSON matching this schema:
 
 Valid Classifications: ${Object.values(CHOICE_CLASSIFICATIONS).join(", ")}.
 Valid Player Stats: resolve, compassion, ambition, devotion, doubt, heroism.
-Valid World Properties: omensSeen, homeThreatLevel.
+World properties you MAY change in effects.world:
+- omensSeen (integer, typically +1)
+- homeThreatLevel (integer, positive or negative deltas)
+- macGuffinStatus (string enum: "none", "primaryAcquired", "backupAcquired", "destroyed", "missing", "bound")
+- tags (array of strings to push into world.tags, e.g. ["divine-corruption"]).
 
 Generate 2-3 distinct choices with meaningful consequences (e.g. Bold vs Cautious vs Merciful).
 `;

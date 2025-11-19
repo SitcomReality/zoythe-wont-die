@@ -1,51 +1,39 @@
 import { LOOP_PHASES, MACGUFFIN_STATUS } from "../../../config/constants.js";
+import { generateBeatContent } from "../../engine/llm-service.js";
 
 export function registerOrdealBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:ordeal:heartOfInterregnum";
 
   const beat = {
     id,
-    enter({ gameState }) {
+    async enter({ gameState }) {
       const macguffin = gameState.world.primaryMacGuffin;
 
-      const title = "The Heart of Divine Ruin";
-      const body = `You stand before ${macguffin.name}. It hovers in a crumbling temple, surrounded by the death-throes of a god. The air screams with divine agony. To claim it, you must prove yourself worthy—or simply survive long enough to grasp it.`;
+      const instructions = `
+        This is "The Ordeal" at the heart of the Interregnum.
+        The protagonist confronts the MacGuffin: "${macguffin.name}" (${macguffin.description}).
+        The scene should feel climactic, surreal, and dangerous; the dying god's presence is palpable.
+        Provide 2-3 choices that represent different approaches:
+        - Bold/direct seizure.
+        - Reverent/prayerful or redemptive approach.
+        - Hesitant/reluctant or cautious response.
+        Some choices may mark the MacGuffin as acquired (world.macGuffinStatus = "primaryAcquired" or "backupAcquired").
+      `;
 
-      const choices = [
-        {
-          id: `${id}:claimBoldly`,
-          label: "Seize it without hesitation.",
-          hint: "Epic.",
-          classification: ["direct"],
-          effects: { 
-            player: { heroism: +3, ambition: +2, resolve: +2 },
-            world: { macGuffinStatus: MACGUFFIN_STATUS.PRIMARY_ACQUIRED }
-          }
-        },
-        {
-          id: `${id}:prayFirst`,
-          label: "Pray to the dying god before taking it.",
-          hint: "Redemptive.",
-          classification: ["mercy"],
-          effects: { 
-            player: { heroism: +2, devotion: +2, compassion: +2 },
-            world: { macGuffinStatus: MACGUFFIN_STATUS.PRIMARY_ACQUIRED }
-          }
-        },
-        {
-          id: `${id}:hesitate`,
-          label: "Hesitate. The weight of this feels wrong.",
-          hint: "Reluctant.",
-          classification: ["refuseQuest", "cautious"],
-          effects: { 
-            player: { doubt: +2, compassion: +1 }
-          }
-        }
-      ];
+      const content = await generateBeatContent({
+        gameState,
+        instructions,
+        beatId: id
+      });
+
+      const choices = content.choices.map(c => ({
+        ...c,
+        id: `${id}:${c.id}`
+      }));
 
       return {
         phase: LOOP_PHASES.ORDEAL,
-        text: { title, body },
+        text: { title: content.title, body: content.body },
         choices
       };
     },
@@ -53,20 +41,20 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
     applyChoice(choice, { gameState }) {
       const { player, world } = gameState;
 
-      if (choice.effects?.player) {
-        player.applyDelta(choice.effects.player);
+      // Ensure some macguffin status if LLM did not set one
+      if (!world.macGuffinStatus || world.macGuffinStatus === MACGUFFIN_STATUS.NONE) {
+        world.macGuffinStatus = MACGUFFIN_STATUS.PRIMARY_ACQUIRED;
       }
 
-      if (choice.effects?.world) {
-        world.applyDelta(choice.effects.world);
-      }
-
-      // If hesitated, forced to take backup
-      if (choice.id.includes("hesitate")) {
-        world.macGuffinStatus = MACGUFFIN_STATUS.BACKUP_ACQUIRED;
-        player.addToInventory(world.backupMacGuffin);
-      } else {
-        player.addToInventory(world.primaryMacGuffin);
+      // Add the appropriate MacGuffin to inventory based on status
+      if (world.macGuffinStatus === MACGUFFIN_STATUS.PRIMARY_ACQUIRED || world.macGuffinStatus === MACGUFFIN_STATUS.BOUND) {
+        if (!player.inventory.includes(world.primaryMacGuffin)) {
+          player.addToInventory(world.primaryMacGuffin);
+        }
+      } else if (world.macGuffinStatus === MACGUFFIN_STATUS.BACKUP_ACQUIRED) {
+        if (!player.inventory.includes(world.backupMacGuffin)) {
+          player.addToInventory(world.backupMacGuffin);
+        }
       }
 
       return "heroJourney:return:roadBack";

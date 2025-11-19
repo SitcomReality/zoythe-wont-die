@@ -1,43 +1,40 @@
 import { LOOP_PHASES } from "../../../config/constants.js";
 import { evaluateArchetype } from "../../../systems/protagonist-archetype.js";
 import { updateWorldTone } from "../../../systems/tone-system.js";
+import { generateBeatContent } from "../../engine/llm-service.js";
 
 export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:return:resurrection";
 
   const beat = {
     id,
-    enter({ gameState }) {
-      const title = "The Final Choice";
-      const body = `You stand at the threshold of home. The ${gameState.world.homeThreat.name} rages before you. The MacGuffin pulses in your hands. This moment will define who you are: the hero who saves, the sacrifice who gives all, or the survivor who endures. Choose.`;
+    async enter({ gameState }) {
+      const threat = gameState.world.homeThreat;
 
-      const choices = [
-        {
-          id: `${id}:sacrifice`,
-          label: "Give everything. Become the sacrifice.",
-          hint: "Redemptive.",
-          classification: ["sacrifice"],
-          effects: { player: { heroism: +3, devotion: +3, compassion: +2 } }
-        },
-        {
-          id: `${id}:triumph`,
-          label: "Stand tall. Claim victory.",
-          hint: "Epic.",
-          classification: ["direct"],
-          effects: { player: { heroism: +3, ambition: +2, resolve: +3 } }
-        },
-        {
-          id: `${id}:survive`,
-          label: "Do what you must to survive.",
-          hint: "Reluctant.",
-          classification: ["cautious"],
-          effects: { player: { resolve: +2, doubt: +1 } }
-        }
-      ];
+      const instructions = `
+        This is "The Resurrection" – the pivotal identity-defining choice near the end.
+        The protagonist stands at the threshold of home, facing the threat "${threat.name}".
+        Their journey, relationships, and the MacGuffin should echo through this moment.
+        Provide 2-3 choices that can tilt the protagonist toward:
+        - Sacrificial/redemptive path.
+        - Triumphant/epic victory.
+        - Survival-focused/reluctant path or other nuanced outcomes.
+      `;
+
+      const content = await generateBeatContent({
+        gameState,
+        instructions,
+        beatId: id
+      });
+
+      const choices = content.choices.map(c => ({
+        ...c,
+        id: `${id}:${c.id}`
+      }));
 
       return {
         phase: LOOP_PHASES.RETURN,
-        text: { title, body },
+        text: { title: content.title, body: content.body },
         choices
       };
     },
@@ -45,15 +42,10 @@ export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
     applyChoice(choice, { gameState }) {
       const { player, world } = gameState;
 
-      if (choice.effects?.player) {
-        player.applyDelta(choice.effects.player);
-      }
-
-      // Evaluate final archetype
+      // Re-evaluate final archetype and world tone after LLM-driven deltas
       const newArchetype = evaluateArchetype({ player });
       player.archetype = newArchetype;
 
-      // Update world tone
       updateWorldTone({ world, player });
 
       return "heroJourney:epilogue:returnWithElixir";
