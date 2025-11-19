@@ -1,5 +1,7 @@
 import { LOOP_PHASES } from "../../config/constants.js";
 import { classifyChoice, getChoiceDelta } from "../../systems/choice-classifier.js";
+import { evaluateArchetype } from "../../systems/protagonist-archetype.js";
+import { updateWorldTone } from "../../systems/tone-system.js";
 
 export function initBeatOrchestrator({ eventBus, gameState, rng }) {
   const registry = new Map();
@@ -34,6 +36,23 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     eventBus.emit("status:update", {});
   }
 
+  function evaluateState() {
+    const { player, world } = gameState;
+    
+    // Update archetype based on current stats
+    const newArchetype = evaluateArchetype({ player });
+    if (newArchetype !== player.archetype) {
+      player.archetype = newArchetype;
+      eventBus.emit("archetype:changed", { archetype: newArchetype });
+    }
+    
+    // Update world tone
+    updateWorldTone({ world, player });
+    
+    // Emit state update
+    eventBus.emit("status:update", {});
+  }
+
   function applyChoice(choice) {
     const currentBeat = registry.get(gameState.narrative.lastBeatId);
     if (!currentBeat || !currentBeat.applyChoice) return;
@@ -60,26 +79,49 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
       gameState.narrative.incrementRefusal();
     }
     
+    // Evaluate state after every choice
+    evaluateState();
+    
     // Evaluate railroad triggers
+    let nextBeatId = null;
     if (gameState.railroadEngine) {
       const rails = gameState.railroadEngine.evaluateRails();
-      for (const rail of rails) {
+      if (rails.length > 0) {
+        const rail = rails[0]; // Take the first/most severe rail
         gameState.railroadEngine.invokeRail(rail);
+        
+        // Railroad can override the next beat
+        nextBeatId = getRailroadBeat(rail);
       }
     }
 
-    const context = { eventBus, gameState, rng };
-    const nextBeatId = currentBeat.applyChoice(choice, context);
+    // If no railroad override, use beat's natural progression
+    if (!nextBeatId) {
+      const context = { eventBus, gameState, rng };
+      nextBeatId = currentBeat.applyChoice(choice, context);
+    }
 
     if (nextBeatId) {
       runBeat(nextBeatId);
     }
   }
 
+  function getRailroadBeat(rail) {
+    // Map railroad types to forced beats
+    const railroadMap = {
+      "forced-departure": "heroJourney:intro:meetingMentor",
+      "urgent-crisis": "heroJourney:tests:urgentTrial",
+      "divine-curse": "heroJourney:tests:cursedTrial"
+    };
+    
+    return railroadMap[rail.type] || null;
+  }
+
   return {
     registerBeat,
     startIntroBeat,
     runBeat,
-    applyChoice
+    applyChoice,
+    evaluateState
   };
 }

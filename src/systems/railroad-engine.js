@@ -1,6 +1,6 @@
 export function createRailroadEngine({ gameState, eventBus }) {
-  const REFUSAL_THRESHOLD = 3;
-  const THREAT_CRITICAL = 5;
+  const REFUSAL_THRESHOLD = 2;
+  const THREAT_CRITICAL = 4;
 
   function checkRefusalRails() {
     const { narrative, world } = gameState;
@@ -29,9 +29,10 @@ export function createRailroadEngine({ gameState, eventBus }) {
 
     // If stuck in same phase for too long
     const recentBeats = narrative.choiceHistory.slice(-5);
-    const phaseChanges = new Set(recentBeats.map(b => gameState.narrative.phase));
+    const phases = recentBeats.map(b => narrative.phase);
+    const uniquePhases = new Set(phases);
 
-    if (phaseChanges.size === 1 && recentBeats.length >= 5) {
+    if (uniquePhases.size === 1 && recentBeats.length >= 5) {
       return {
         type: "phase-push",
         reason: "Narrative stalled in current phase",
@@ -47,7 +48,7 @@ export function createRailroadEngine({ gameState, eventBus }) {
 
     // Check for betrayals
     const betrayals = Array.from(player.relationships.values())
-      .filter(rel => rel.score < -3);
+      .filter(rel => rel.score < -2);
 
     if (betrayals.length >= 2) {
       return {
@@ -66,6 +67,9 @@ export function createRailroadEngine({ gameState, eventBus }) {
       checkStallRails(),
       checkRelationshipRails()
     ].filter(Boolean);
+
+    // Sort by severity, highest first
+    rails.sort((a, b) => b.severity - a.severity);
 
     return rails;
   }
