@@ -12,6 +12,10 @@ export function createGameController({ eventBus, gameState, beatOrchestrator, ui
     beatOrchestrator.applyChoice(choice);
   });
 
+  eventBus.on("narrative:loading", () => {
+    ui.renderLoading();
+  });
+
   eventBus.on("narrative:update", payload => {
     ui.renderText(payload);
     ui.renderHistory(payload); // Add history tracking

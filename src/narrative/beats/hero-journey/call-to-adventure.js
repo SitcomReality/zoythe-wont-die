@@ -1,49 +1,47 @@
 import { LOOP_PHASES } from "../../../config/constants.js";
+import { generateBeatContent } from "../../engine/llm-service.js";
 
 export function registerCallToAdventureBeat({ beatOrchestrator }) {
   const id = "heroJourney:intro:callToAdventure";
 
   const beat = {
     id,
-    enter({ gameState }) {
-      const { player, world } = gameState;
+    async enter({ gameState }) {
+      const instructions = `
+        This is the 'Call to Adventure'. 
+        The protagonist is at their home/shelter.
+        A divine sign (falling star, bleeding moon, etc) signals the beginning of the end.
+        The Call must be introduced.
+        Required Choice Types: 
+        - Accept/Advance (starts quest)
+        - Refuse (hesitation)
+      `;
 
-      const title = "Omens at the Edge of a Dying Heaven";
-      const body =
-        "The sky has learned to bleed. Fractured constellations hang like broken crowns over the world, each shard a fading god whose name you half-remember from childhood prayers. Tonight, one of them falls—straight toward you.";
+      // Generate content via LLM
+      const content = await generateBeatContent({ 
+        gameState, 
+        instructions, 
+        beatId: id 
+      });
 
-      const choices = [
-        {
-          id: `${id}:accept`,
-          label: "Step toward the falling godlight.",
-          hint: "Embrace the call.",
-          effects: { player: { resolve: +1 }, world: { omensSeen: 1 } }
-        },
-        {
-          id: `${id}:refuse`,
-          label: "Turn away. This is not your fate.",
-          hint: "Refuse—for now.",
-          effects: { player: { doubt: +1 } }
-        }
-      ];
+      // Post-process choices to match ID schema if needed, 
+      // but we'll trust the Orchestrator's generic handling mostly.
+      // We just ensure IDs are unique enough.
+      const choices = content.choices.map(c => ({
+        ...c,
+        id: `${id}:${c.id}`
+      }));
 
       return {
         phase: LOOP_PHASES.INTRO,
-        text: { title, body },
+        text: { title: content.title, body: content.body },
         choices
       };
     },
 
     applyChoice(choice, { gameState }) {
-      const { player, world } = gameState;
-
-      if (choice.effects?.player) {
-        player.applyDelta(choice.effects.player);
-      }
-      if (choice.effects?.world) {
-        world.applyDelta(choice.effects.world);
-      }
-
+      // Regardless of choice (Accept/Refuse), the mentor appears next,
+      // though refusals might trigger rails later.
       return "heroJourney:intro:meetingMentor";
     }
   };

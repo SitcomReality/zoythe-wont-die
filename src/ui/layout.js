@@ -99,6 +99,7 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
   function renderChoices(payload) { choiceList.render(payload); }
   function renderStatus(payload) { if(statusBar) statusBar.render(payload); }
   function renderHistory(payload) { historyPanel.render(payload); }
+  function renderLoading() { textPanel.setLoading(); }
 
   return {
     showMainMenu,
@@ -107,6 +108,7 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
     renderText,
     renderChoices,
     renderStatus,
-    renderHistory
+    renderHistory,
+    renderLoading
   };
 }

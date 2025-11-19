@@ -14,7 +14,7 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     runBeat("heroJourney:intro:callToAdventure");
   }
 
-  function runBeat(id) {
+  async function runBeat(id) {
     const beat = registry.get(id);
     if (!beat) {
       console.warn("[beat-orchestrator] missing beat", id);
@@ -23,27 +23,41 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
 
     gameState.narrative.lastBeatId = id;
     const context = { eventBus, gameState, rng };
-    const { text, choices, phase } = beat.enter(context);
 
-    if (phase && phase in LOOP_PHASES) {
-      gameState.narrative.phase = phase;
+    // Signal loading state to UI
+    eventBus.emit("narrative:loading", { beatId: id });
+    eventBus.emit("choices:update", { choices: [] }); // Clear choices while loading
+
+    try {
+      const { text, choices, phase } = await beat.enter(context);
+
+      if (phase && phase in LOOP_PHASES) {
+        gameState.narrative.phase = phase;
+      }
+      gameState.narrative.beatIndex += 1;
+      gameState.narrative.pendingChoices = choices || [];
+
+      // Track in history
+      gameState.narrative.history.push({
+        beatId: id,
+        title: text.title || "",
+        body: text.body || "",
+        phase,
+        timestamp: Date.now()
+      });
+
+      eventBus.emit("narrative:update", text);
+      eventBus.emit("choices:update", { choices });
+      eventBus.emit("history:update", { history: gameState.narrative.history });
+      eventBus.emit("status:update", {});
+
+    } catch (error) {
+      console.error("[beat-orchestrator] beat execution failed", error);
+      eventBus.emit("narrative:update", { 
+        title: "The Weave Snaps", 
+        body: "The threads of fate have tangled. (Generation Error)" 
+      });
     }
-    gameState.narrative.beatIndex += 1;
-    gameState.narrative.pendingChoices = choices || [];
-
-    // Track in history
-    gameState.narrative.history.push({
-      beatId: id,
-      title: text.title || "",
-      body: text.body || "",
-      phase,
-      timestamp: Date.now()
-    });
-
-    eventBus.emit("narrative:update", text);
-    eventBus.emit("choices:update", { choices });
-    eventBus.emit("history:update", { history: gameState.narrative.history });
-    eventBus.emit("status:update", {});
   }
 
   function evaluateState() {
