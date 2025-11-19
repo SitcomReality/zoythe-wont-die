@@ -95,8 +95,18 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
     statusBar.render();
   }
 
-  function renderText(payload) { textPanel.render(payload); }
-  function renderChoices(payload) { choiceList.render(payload); }
+  // Wire up loading state
+  eventBus.on("narrative:loading", () => {
+    textPanel.setLoading();
+    choiceList.hide();
+  });
+
+  function renderText(payload) { 
+    textPanel.render(payload); 
+  }
+  function renderChoices(payload) { 
+    choiceList.render(payload); 
+  }
   function renderStatus(payload) { if(statusBar) statusBar.render(payload); }
   function renderHistory(payload) { historyPanel.render(payload); }
   function renderLoading() { textPanel.setLoading(); }

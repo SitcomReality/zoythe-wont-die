@@ -7,6 +7,7 @@ export function createChoiceList({ root, eventBus }) {
   root.appendChild(container);
 
   function render({ choices }) {
+    container.classList.remove("choice-list--hidden");
     container.innerHTML = "";
     if (!choices || !choices.length) return;
 
@@ -28,6 +29,8 @@ export function createChoiceList({ root, eventBus }) {
       }
 
       btn.addEventListener("click", () => {
+        // Fade out choices immediately
+        container.classList.add("choice-list--hidden");
         eventBus.emit("ui:choice:selected", choice);
       });
 
@@ -35,6 +38,10 @@ export function createChoiceList({ root, eventBus }) {
     }
   }
 
-  return { render };
+  function hide() {
+    container.classList.add("choice-list--hidden");
+  }
+
+  return { render, hide };
 }
 

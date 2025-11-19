@@ -17,6 +17,7 @@
   opacity: 0.9;
   margin-bottom: 16px;
   font-weight: 600;
+  transition: opacity 0.3s ease;
 }
 
 .text-panel__body {
@@ -27,6 +28,13 @@
   color: var(--text-main);
   overflow-y: auto;
   padding-right: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.text-panel__title--hidden,
+.text-panel__body--hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .text-panel__loading {
@@ -39,7 +47,14 @@
   font-size: 0.9rem;
   letter-spacing: 0.1em;
   gap: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease 0.2s;
+  pointer-events: none;
+}
+
+.text-panel__loading--visible {
   opacity: 0.8;
+  pointer-events: auto;
 }
 
 .spinner {

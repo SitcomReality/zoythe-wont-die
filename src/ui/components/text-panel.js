@@ -13,7 +13,6 @@ export function createTextPanel({ root }) {
   const loadingEl = document.createElement("div");
   loadingEl.className = "text-panel__loading";
   loadingEl.innerHTML = `<div class="spinner"></div><span>Consulting the Stars...</span>`;
-  loadingEl.style.display = "none";
 
   container.appendChild(titleEl);
   container.appendChild(bodyEl);
@@ -21,18 +20,20 @@ export function createTextPanel({ root }) {
   root.appendChild(container);
 
   function render({ title, body }) {
-    loadingEl.style.display = "none";
-    titleEl.style.display = "block";
-    bodyEl.style.display = "block";
+    // Fade in the content
+    titleEl.classList.remove("text-panel__title--hidden");
+    bodyEl.classList.remove("text-panel__body--hidden");
+    loadingEl.classList.remove("text-panel__loading--visible");
     
     titleEl.textContent = title || "";
     bodyEl.textContent = body || "";
   }
 
   function setLoading() {
-    loadingEl.style.display = "flex";
-    titleEl.style.display = "none";
-    bodyEl.style.display = "none";
+    // Fade out content and fade in loading
+    titleEl.classList.add("text-panel__title--hidden");
+    bodyEl.classList.add("text-panel__body--hidden");
+    loadingEl.classList.add("text-panel__loading--visible");
   }
 
   return { render, setLoading };
