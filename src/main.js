@@ -42,6 +42,11 @@ const beatOrchestrator = initBeatOrchestrator({
   rng
 });
 
+// allow UI to request running a specific beat (used by Back)
+eventBus.on("narrative:runBeat", id => {
+  beatOrchestrator.runBeat(id);
+});
+
 const railroadEngine = createRailroadEngine({ gameState, eventBus });
 gameState.railroadEngine = railroadEngine;
 

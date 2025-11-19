@@ -1,4 +1,4 @@
-export function createChoiceList({ root, eventBus }) {
+export function createChoiceList({ root, eventBus, gameState }) {
   root.innerHTML = "";
 
   const container = document.createElement("div");
@@ -11,6 +11,27 @@ export function createChoiceList({ root, eventBus }) {
   function render({ choices }) {
     container.innerHTML = "";
     if (!choices || !choices.length) return;
+
+    // Back button (shows when there's history)
+    if (gameState && Array.isArray(gameState.narrative.history) && gameState.narrative.history.length > 0) {
+      const backBtn = document.createElement("button");
+      backBtn.textContent = "← Back";
+      backBtn.style.width = "100%";
+      backBtn.style.padding = "9px 10px";
+      backBtn.style.borderRadius = "999px";
+      backBtn.style.border = "1px solid rgba(255,255,255,0.04)";
+      backBtn.style.background = "rgba(20,20,20,0.96)";
+      backBtn.style.color = "var(--text-muted)";
+      backBtn.style.fontSize = "0.82rem";
+      backBtn.onpointerup = () => {
+        const prev = gameState.narrative.history.pop();
+        if (prev) {
+          eventBus.emit("narrative:runBeat", prev);
+          // update status/choices will be triggered by beat orchestrator
+        }
+      };
+      container.appendChild(backBtn);
+    }
 
     for (const choice of choices) {
       const btn = document.createElement("button");
