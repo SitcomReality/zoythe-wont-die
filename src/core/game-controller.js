@@ -84,7 +84,7 @@ export function createGameController({ eventBus, ui }) {
 
   function launchGame() {
     // Setup Systems
-    beatOrchestrator = initBeatOrchestrator({ eventBus, gameState, gameState.rng });
+    beatOrchestrator = initBeatOrchestrator({ eventBus, gameState, rng: gameState.rng });
     const railroadEngine = createRailroadEngine({ gameState, eventBus });
     gameState.railroadEngine = railroadEngine;
     
