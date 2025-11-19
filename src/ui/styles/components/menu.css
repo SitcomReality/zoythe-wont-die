@@ -100,8 +100,11 @@
 }
 
 /* Make select dropdown text darker and ensure option items are readable */
+/* UPDATED: give the select box a lighter background so dark text in the control is readable */
 .form-select {
-  color: #111; /* darker text for dropdown display */
+  background: #f5f5f5; /* lighter field so dark text is legible */
+  color: #111; /* dark text for selected value */
+  border: 1px solid rgba(0,0,0,0.12);
   -webkit-text-fill-color: #111; /* ensure on some browsers */
 }
 
