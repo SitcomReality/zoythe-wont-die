@@ -1,0 +1,56 @@
+.status-bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  gap: 16px;
+}
+
+.status-bar__left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-bar__center {
+  display: flex;
+  gap: 8px;
+  font-size: 0.85rem;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.status-bar__threat {
+  color: var(--danger);
+  opacity: 0.7;
+}
+
+.status-bar__heroism {
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.status-bar__right {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 480px) {
+  .status-bar {
+    padding: 0 8px;
+    font-size: 0.85rem;
+    gap: 12px;
+  }
+
+  .status-bar__center {
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+}
+
