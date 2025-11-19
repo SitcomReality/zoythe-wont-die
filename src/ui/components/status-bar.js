@@ -6,20 +6,20 @@ export function createStatusBar({ root, gameState }) {
   bar.style.display = "flex";
   bar.style.alignItems = "center";
   bar.style.justifyContent = "space-between";
-  bar.style.padding = "0 10px";
-  bar.style.fontSize = "0.72rem";
+  bar.style.padding = "0 12px";
+  bar.style.fontSize = "0.9rem";
   bar.style.color = "var(--text-muted)";
-  bar.style.gap = "12px";
+  bar.style.gap = "16px";
 
   const left = document.createElement("div");
   left.style.display = "flex";
-  left.style.gap = "8px";
+  left.style.gap = "12px";
   left.style.alignItems = "center";
   
   const center = document.createElement("div");
   center.style.display = "flex";
-  center.style.gap = "6px";
-  center.style.fontSize = "0.68rem";
+  center.style.gap = "8px";
+  center.style.fontSize = "0.85rem";
   
   const right = document.createElement("div");
 

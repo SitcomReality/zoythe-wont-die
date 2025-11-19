@@ -4,7 +4,7 @@ import { createStatusBar } from "./components/status-bar.js";
 
 export function mountLayout({ statusRoot, textRoot, choicesRoot, eventBus, gameState }) {
   const textPanel = createTextPanel({ root: textRoot });
-  const choiceList = createChoiceList({ root: choicesRoot, eventBus, gameState });
+  const choiceList = createChoiceList({ root: choicesRoot, eventBus });
   const statusBar = createStatusBar({ root: statusRoot, gameState });
 
   function renderText({ title, body }) {

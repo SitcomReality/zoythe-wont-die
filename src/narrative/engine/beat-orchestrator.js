@@ -21,11 +21,6 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
       return;
     }
 
-    // record previous beat id into history so UI can navigate back
-    if (gameState.narrative.lastBeatId) {
-      gameState.narrative.history.push(gameState.narrative.lastBeatId);
-    }
-
     gameState.narrative.lastBeatId = id;
     const context = { eventBus, gameState, rng };
     const { text, choices, phase } = beat.enter(context);

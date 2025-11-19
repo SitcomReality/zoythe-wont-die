@@ -69,12 +69,12 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        padding: 12px;
-        gap: 8px;
+        padding: 20px;
+        gap: 16px;
       }
 
       .app-status {
-        height: 32px;
+        height: 40px;
         flex-shrink: 0;
       }
 
@@ -95,6 +95,22 @@
         }
       }
     </script>
+    <style>
+      /* Custom scrollbar for cleaner look */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+    </style>
     <script type="module" src="./src/main.js"></script>
   </head>
   <body>
