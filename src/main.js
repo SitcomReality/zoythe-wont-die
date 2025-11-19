@@ -45,7 +45,7 @@ const beatOrchestrator = initBeatOrchestrator({
 const railroadEngine = createRailroadEngine({ gameState, eventBus });
 gameState.railroadEngine = railroadEngine;
 
-registerCoreBeats({ beatOrchestrator, eventBus, gameState });
+registerCoreBeats({ beatOrchestrator, eventBus, gameState, rng });
 initDesignDocHooks({ gameState, beatOrchestrator, eventBus });
 
 const controller = createGameController({

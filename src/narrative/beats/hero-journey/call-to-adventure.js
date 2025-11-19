@@ -44,38 +44,9 @@ export function registerCallToAdventureBeat({ beatOrchestrator }) {
         world.applyDelta(choice.effects.world);
       }
 
-      // Placeholder routing: both flow to the same next beat stub (to be split later).
-      return "heroJourney:intro:afterCallStub";
+      return "heroJourney:intro:meetingMentor";
     }
   };
 
   beatOrchestrator.registerBeat(id, beat);
-
-  // Minimal placeholder for the immediate follow-up beat to keep loop functional.
-  const afterId = "heroJourney:intro:afterCallStub";
-  beatOrchestrator.registerBeat(afterId, {
-    id: afterId,
-    enter() {
-      return {
-        phase: LOOP_PHASES.INTRO,
-        text: {
-          title: "The World Holds Its Breath",
-          body:
-            "Light and ash settle around you. Somewhere above, another god flickers. The path you have chosen begins to crystalize, fragile as first ice. The Interregnum has noticed you."
-        },
-        choices: [
-          {
-            id: `${afterId}:continue`,
-            label: "Let the story tighten around you.",
-            hint: "Proceed.",
-            effects: {}
-          }
-        ]
-      };
-    },
-    applyChoice() {
-      // For now, loop back to the call to keep the prototype replayable.
-      return id;
-    }
-  });
 }
