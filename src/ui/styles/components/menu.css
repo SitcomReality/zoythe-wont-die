@@ -99,6 +99,19 @@
   font-size: 1rem;
 }
 
+/* Make select dropdown text darker and ensure option items are readable */
+.form-select {
+  color: #111; /* darker text for dropdown display */
+  -webkit-text-fill-color: #111; /* ensure on some browsers */
+}
+
+/* Native option styling for dropdown list (where supported) */
+.form-select option {
+  color: #111;
+  background: #fff;
+}
+
+/* Focus styles remain unchanged */
 .form-input:focus, .form-select:focus {
   outline: none;
   border-color: var(--accent);
