@@ -7,6 +7,28 @@ export function createNarrativeState() {
     beatIndex: 0,
     history: [],
     pendingChoices: [],
-    lastBeatId: null
+    lastBeatId: null,
+    refusalCount: 0,
+    choiceHistory: [],
+    railsInvoked: [],
+    addChoice(choice, classification) {
+      this.choiceHistory.push({
+        beatIndex: this.beatIndex,
+        choice,
+        classification,
+        timestamp: Date.now()
+      });
+    },
+    incrementRefusal() {
+      this.refusalCount++;
+    },
+    addRail(railType, reason) {
+      this.railsInvoked.push({
+        beatIndex: this.beatIndex,
+        type: railType,
+        reason,
+        timestamp: Date.now()
+      });
+    }
   };
 }

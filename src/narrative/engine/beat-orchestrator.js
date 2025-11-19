@@ -1,4 +1,5 @@
 import { LOOP_PHASES } from "../../config/constants.js";
+import { classifyChoice, getChoiceDelta } from "../../systems/choice-classifier.js";
 
 export function initBeatOrchestrator({ eventBus, gameState, rng }) {
   const registry = new Map();
@@ -36,6 +37,36 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
   function applyChoice(choice) {
     const currentBeat = registry.get(gameState.narrative.lastBeatId);
     if (!currentBeat || !currentBeat.applyChoice) return;
+
+    // Classify the choice
+    const classifications = classifyChoice(choice);
+    
+    // Get combined delta from explicit effects and inferred effects
+    const delta = getChoiceDelta(choice, classifications);
+    
+    // Apply delta to state
+    if (delta.player) {
+      gameState.player.applyDelta(delta.player);
+    }
+    if (delta.world) {
+      gameState.world.applyDelta(delta.world);
+    }
+    
+    // Track choice in history
+    gameState.narrative.addChoice(choice, classifications);
+    
+    // Check for refusals
+    if (classifications.includes("refuseQuest")) {
+      gameState.narrative.incrementRefusal();
+    }
+    
+    // Evaluate railroad triggers
+    if (gameState.railroadEngine) {
+      const rails = gameState.railroadEngine.evaluateRails();
+      for (const rail of rails) {
+        gameState.railroadEngine.invokeRail(rail);
+      }
+    }
 
     const context = { eventBus, gameState, rng };
     const nextBeatId = currentBeat.applyChoice(choice, context);
