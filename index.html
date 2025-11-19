@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Zoythe: Supernal Interregnum</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0c0d;
+        --panel: #141617;
+        --accent: #e6b35a;
+        --accent-soft: rgba(230, 179, 90, 0.08);
+        --text-main: #f5f5f5;
+        --text-muted: #9a9ea3;
+        --danger: #ff6b6b;
+        --border-subtle: rgba(255, 255, 255, 0.06);
+        --radius-lg: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background: radial-gradient(circle at top, #1b1e20 0, #050506 55%, #020203 100%);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+        color: var(--text-main);
+        overflow: hidden;
+      }
+
+      body {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+      }
+
+      #app-root {
+        width: 100%;
+        height: 100%;
+        padding: 12px;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+      }
+
+      .app-frame {
+        width: 100%;
+        max-width: 520px;
+        max-height: 100%;
+        border-radius: var(--radius-lg);
+        background: rgba(6, 7, 8, 0.92);
+        border: 1px solid var(--border-subtle);
+        box-shadow:
+          0 18px 40px rgba(0, 0, 0, 0.65),
+          0 0 0 1px rgba(255, 255, 255, 0.02);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .app-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+        gap: 8px;
+      }
+
+      .app-status {
+        height: 32px;
+        flex-shrink: 0;
+      }
+
+      .app-text {
+        flex: 1;
+        min-height: 0;
+      }
+
+      .app-choices {
+        flex-shrink: 0;
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "nanoid": "https://esm.sh/nanoid@5.0.7"
+        }
+      }
+    </script>
+    <script type="module" src="./src/main.js"></script>
+  </head>
+  <body>
+    <div id="app-root">
+      <div class="app-frame">
+        <div class="app-main">
+          <div class="app-status" id="ui-status"></div>
+          <div class="app-text" id="ui-text"></div>
+          <div class="app-choices" id="ui-choices"></div>
+        </div>
+      </div>
+    </div>
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+
