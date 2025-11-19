@@ -4,4 +4,7 @@
 @import "./components/text-panel.css";
 @import "./components/status-bar.css";
 @import "./components/choice-list.css";
+/* Ensure history panel and mobile footer styles are loaded */
+@import "./components/history-panel.css";
+@import "./components/mobile-footer.css";
 
