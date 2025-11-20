@@ -119,6 +119,26 @@ export function createGameController({ eventBus, ui }) {
     saveGame(gameState); // Save on turn
   });
   
+  // Regenerate current beat: increment RNG seed and re-run the last beat
+  eventBus.on("ui:regenerate:beat", () => {
+    if (!gameState || !beatOrchestrator) return;
+    try {
+      // If we have a numeric seed on the RNG, increment it; otherwise create a new RNG seeded by time
+      const currentSeed = Number(gameState.rng?.seed) || Date.now();
+      const newSeed = Number(currentSeed) + 1;
+      gameState.rng = createRng(newSeed);
+
+      // Re-run the last beat id (will trigger loading -> generateBeatContent -> update UI)
+      const lastBeat = gameState.narrative.lastBeatId;
+      if (lastBeat) {
+        // Use orchestrator to run the beat again
+        beatOrchestrator.runBeat(lastBeat);
+      }
+    } catch (err) {
+      console.error("Regenerate failed:", err);
+    }
+  });
+  
   eventBus.on("narrative:update", payload => {
     ui.renderText(payload);
     ui.renderHistory({ history: gameState.narrative.history });

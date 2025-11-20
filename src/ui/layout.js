@@ -47,7 +47,7 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
   mainArea.appendChild(menuContainer);
 
   // Components
-  const textPanel = createTextPanel({ root: textRoot });
+  const textPanel = createTextPanel({ root: textRoot, eventBus });
   const choiceList = createChoiceList({ root: choicesRoot, eventBus });
   // StatusBar requires gameState, but we might not have it yet. 
   // We'll init it properly when game starts or mock it.
