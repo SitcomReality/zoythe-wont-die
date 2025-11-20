@@ -11,7 +11,7 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
   }
 
   function startIntroBeat() {
-    runBeat("heroJourney:intro:callToAdventure");
+    runBeat("heroJourney:intro:prologue");
   }
 
   async function runBeat(id) {
