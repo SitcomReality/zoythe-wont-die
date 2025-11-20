@@ -7,6 +7,7 @@
   background: radial-gradient(circle at top, rgba(230, 179, 90, 0.06), rgba(0, 0, 0, 0.9));
   border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.6) inset;
+  position: relative;
 }
 
 .text-panel__title {
@@ -38,7 +39,13 @@
 }
 
 .text-panel__loading {
-  flex: 1;
+  display: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 24px;
+  background: rgba(6, 7, 8, 0.72);
+  border-radius: inherit;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -47,13 +54,15 @@
   font-size: 0.9rem;
   letter-spacing: 0.1em;
   gap: 16px;
-  opacity: 0;
-  transition: opacity 0.3s ease 0.2s;
   pointer-events: none;
+  transition: opacity 0.18s ease;
+  opacity: 0;
+  z-index: 10;
 }
 
 .text-panel__loading--visible {
-  opacity: 0.8;
+  display: flex;
+  opacity: 0.95;
   pointer-events: auto;
 }
 
