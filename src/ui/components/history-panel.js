@@ -23,43 +23,46 @@ export function createHistoryPanel({ root }) {
       const item = document.createElement("div");
       item.className = "history-panel__item";
 
-      const summary = document.createElement("button");
-      summary.className = "history-panel__summary";
+      const button = document.createElement("button");
+      button.className = "history-panel__button";
       
       const titleEl = document.createElement("div");
-      titleEl.className = "history-panel__entry-title";
+      titleEl.className = "history-panel__title";
       titleEl.textContent = entry.title || `Page ${idx + 1}`;
 
-      const previewEl = document.createElement("div");
-      previewEl.className = "history-panel__entry-preview";
-      const preview = entry.body ? entry.body.split('\n')[0].substring(0, 60) : '';
-      previewEl.textContent = preview + (preview.length === 60 ? '...' : '');
+      const contentEl = document.createElement("div");
+      contentEl.className = "history-panel__content";
+      
+      const fullBody = entry.body || '';
+      const trimmedBody = fullBody.split('\n')[0].substring(0, 60);
+      const isTrimmed = trimmedBody.length === 60 && fullBody.length > 60;
+      
+      contentEl.textContent = isTrimmed ? trimmedBody + "..." : fullBody;
+      contentEl.dataset.full = fullBody;
+      contentEl.dataset.trimmed = isTrimmed ? trimmedBody + "..." : fullBody;
+      contentEl.dataset.expanded = "false";
 
-      summary.appendChild(titleEl);
-      summary.appendChild(previewEl);
-
-      const detail = document.createElement("div");
-      detail.className = "history-panel__detail";
-      detail.style.display = "none";
-
-      const bodyEl = document.createElement("div");
-      bodyEl.className = "history-panel__entry-body";
-      bodyEl.textContent = entry.body || '';
-
-      detail.appendChild(bodyEl);
+      button.appendChild(titleEl);
+      button.appendChild(contentEl);
 
       let expanded = false;
-      summary.addEventListener("click", () => {
+      button.addEventListener("click", () => {
         expanded = !expanded;
-        detail.style.display = expanded ? "block" : "none";
-        item.classList.toggle("history-panel__item--expanded", expanded);
+        if (expanded) {
+          contentEl.textContent = contentEl.dataset.full;
+          contentEl.dataset.expanded = "true";
+          item.classList.add("history-panel__item--expanded");
+        } else {
+          contentEl.textContent = contentEl.dataset.trimmed;
+          contentEl.dataset.expanded = "false";
+          item.classList.remove("history-panel__item--expanded");
+        }
       });
 
-      item.appendChild(summary);
-      item.appendChild(detail);
+      item.appendChild(button);
       list.appendChild(item);
 
-      // Find the choice that was submitted after this page's timestamp and before the next page's timestamp (if any)
+      // Find and render the choice that was submitted after this page
       const nextEntry = history[idx + 1];
       const submitted = choiceHistory.find(c => {
         const ct = c.timestamp || 0;
@@ -68,32 +71,39 @@ export function createHistoryPanel({ root }) {
         return afterPage && beforeNext;
       });
 
-      // Only create and append a choice-row if a submitted choice exists for this page
       if (submitted && submitted.choice) {
         const choiceContainer = document.createElement("div");
         choiceContainer.className = "history-panel__choice-row";
 
         const choiceBtn = document.createElement("button");
-        choiceBtn.className = "history-panel__choice-summary";
+        choiceBtn.className = "history-panel__choice-button";
+        
         const choiceLabel = typeof submitted.choice.label === "string" ? submitted.choice.label : (submitted.choice || {}).label || "";
-        choiceBtn.textContent = choiceLabel.length > 80 ? choiceLabel.substring(0, 77) + "..." : choiceLabel;
+        const choiceTrimmed = choiceLabel.length > 80 ? choiceLabel.substring(0, 77) + "..." : choiceLabel;
+        
+        choiceBtn.textContent = choiceTrimmed;
+        choiceBtn.dataset.full = choiceLabel;
+        choiceBtn.dataset.trimmed = choiceTrimmed;
+        choiceBtn.dataset.expanded = "false";
 
-        // When clicked, toggle a tiny popup/expand to show full choice
-        const full = document.createElement("div");
-        full.className = "history-panel__choice-full";
-        full.style.display = "none";
-        full.textContent = choiceLabel;
-
-        choiceBtn.addEventListener("click", () => {
-          const visible = full.style.display === "block";
-          full.style.display = visible ? "none" : "block";
+        let choiceExpanded = false;
+        choiceBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          choiceExpanded = !choiceExpanded;
+          if (choiceExpanded) {
+            choiceBtn.textContent = choiceBtn.dataset.full;
+            choiceBtn.dataset.expanded = "true";
+            choiceContainer.classList.add("history-panel__choice-row--expanded");
+          } else {
+            choiceBtn.textContent = choiceBtn.dataset.trimmed;
+            choiceBtn.dataset.expanded = "false";
+            choiceContainer.classList.remove("history-panel__choice-row--expanded");
+          }
         });
 
         choiceContainer.appendChild(choiceBtn);
-        choiceContainer.appendChild(full);
         list.appendChild(choiceContainer);
       }
-      // If no submitted choice for this page, do not render a placeholder row
     }
   }
 

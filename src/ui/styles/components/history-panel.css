@@ -28,7 +28,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-.history-panel__summary {
+.history-panel__button {
   width: 100%;
   padding: 16px 20px;
   border: none;
@@ -42,48 +42,35 @@
   gap: 4px;
 }
 
-.history-panel__summary:hover {
+.history-panel__button:hover {
   background: rgba(230, 179, 90, 0.04);
 }
 
-.history-panel__entry-title {
+.history-panel__title {
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--accent);
 }
 
-.history-panel__entry-preview {
-  font-size: 0.85rem;
+.history-panel__content {
+  font-size: 0.9rem;
   color: var(--text-muted);
   line-height: 1.4;
-}
-
-.history-panel__item--expanded .history-panel__summary {
-  background: rgba(230, 179, 90, 0.08);
-}
-
-.history-panel__detail {
-  padding: 0 20px 16px;
-}
-
-.history-panel__entry-body {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--text-main);
-  white-space: pre-wrap;
   word-break: break-word;
+  white-space: normal;
+}
+
+.history-panel__item--expanded .history-panel__button {
+  background: rgba(230, 179, 90, 0.08);
 }
 
 .history-panel__choice-row {
   padding: 8px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.02);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   background: rgba(0,0,0,0.02);
 }
 
-.history-panel__choice-summary {
+.history-panel__choice-button {
   width: 100%;
   text-align: left;
   padding: 8px 12px;
@@ -93,37 +80,29 @@
   color: var(--text-muted);
   font-size: 0.9rem;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  font-family: inherit;
 }
 
-.history-panel__choice-summary:active {
+.history-panel__choice-button:hover {
+  background: rgba(230, 179, 90, 0.04);
+}
+
+.history-panel__choice-button:active {
   transform: translateY(1px);
 }
 
-.history-panel__choice-full {
-  padding: 8px 12px;
-  background: rgba(230,179,90,0.04);
+.history-panel__choice-row--expanded .history-panel__choice-button {
+  background: rgba(230, 179, 90, 0.08);
   color: var(--text-main);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  white-space: normal;
-  word-break: break-word;
 }
 
-.history-panel__choice-placeholder {
-  color: var(--text-muted);
-  opacity: 0.6;
-  padding: 4px 0;
-}
-
-/* Keep mobile adjustments consistent */
 @media (max-width: 768px) {
   .history-panel__choice-row {
     padding: 8px 16px;
   }
-  .history-panel__choice-summary {
+  .history-panel__choice-button {
     font-size: 0.95rem;
   }
 }
