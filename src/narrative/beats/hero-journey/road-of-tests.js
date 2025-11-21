@@ -1,6 +1,6 @@
 import { LOOP_PHASES, CHOICE_CLASSIFICATIONS } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import roadOfTestsPrompt from "../../prompts/hero/roadOfTests.js";
+import roadOfTestsPrompt from "../../../prompts/hero/roadOfTests.js";
 
 export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
   const firstTrialId = "heroJourney:tests:firstTrial";

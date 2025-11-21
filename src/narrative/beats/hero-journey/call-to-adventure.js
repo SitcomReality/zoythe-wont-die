@@ -1,6 +1,6 @@
 import { LOOP_PHASES } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import callToAdventurePrompt from "../../prompts/hero/callToAdventure.js";
+import callToAdventurePrompt from "../../../prompts/hero/callToAdventure.js";
 
 export function registerCallToAdventureBeat({ beatOrchestrator }) {
   const id = "heroJourney:intro:callToAdventure";

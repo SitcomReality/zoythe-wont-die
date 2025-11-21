@@ -2,7 +2,7 @@ import { LOOP_PHASES } from "../../../config/constants.js";
 import { evaluateArchetype } from "../../../systems/protagonist-archetype.js";
 import { updateWorldTone } from "../../../systems/tone-system.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import resurrectionPrompt from "../../prompts/hero/resurrection.js";
+import resurrectionPrompt from "../../../prompts/hero/resurrection.js";
 
 export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:return:resurrection";

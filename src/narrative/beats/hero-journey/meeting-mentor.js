@@ -1,7 +1,7 @@
 import { LOOP_PHASES, NPC_ROLES } from "../../../config/constants.js";
 import { getNPCsByRole } from "../../../systems/npc-manager.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import meetingMentorPrompt from "../../prompts/hero/meetingMentor.js";
+import meetingMentorPrompt from "../../../prompts/hero/meetingMentor.js";
 
 export function registerMeetingMentorBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:intro:meetingMentor";

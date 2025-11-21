@@ -1,6 +1,6 @@
 import { LOOP_PHASES, CHOICE_CLASSIFICATIONS } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import ordealPrompt from "../../prompts/hero/ordeal.js";
+import ordealPrompt from "../../../prompts/hero/ordeal.js";
 
 export function registerOrdealBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:ordeal:heartOfInterregnum";

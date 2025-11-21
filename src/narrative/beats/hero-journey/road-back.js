@@ -1,6 +1,6 @@
 import { LOOP_PHASES } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import roadBackPrompt from "../../prompts/hero/roadBack.js";
+import roadBackPrompt from "../../../prompts/hero/roadBack.js";
 
 export function registerRoadBackBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:return:roadBack";
