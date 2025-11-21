@@ -30,7 +30,7 @@
 
 .history-panel__button {
   width: 100%;
-  padding: 16px 20px;
+  padding: 4px;
   border: none;
   background: transparent;
   color: var(--text-main);
@@ -65,7 +65,7 @@
 }
 
 .history-panel__choice-row {
-  padding: 4px 20px;
+  padding: 4px;
   border-bottom: 1px solid rgba(255,255,255,0.02);
   background: rgba(0,0,0,0.02);
 }
