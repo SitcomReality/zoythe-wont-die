@@ -20,11 +20,9 @@ export function registerMeetingMentorBeat({ beatOrchestrator, gameState }) {
       const mentorName = mentor ? mentor.name : "a stranger";
       const mentorDesc = mentor ? mentor.descriptor : "mysterious figure";
 
-      // Insert dynamic values into prompt
       const instructions = meetingMentorPrompt
         .replace(/\${mentorName}/g, mentorName)
-        .replace(/\${mentorDesc}/g, mentorDesc)
-        .replace(/\${macGuffinName}/g, gameState.world.primaryMacGuffin?.name || "MacGuffin");
+        .replace(/\${mentorDesc}/g, mentorDesc);
 
       const content = await generateBeatContent({ 
         gameState, 
@@ -45,10 +43,10 @@ export function registerMeetingMentorBeat({ beatOrchestrator, gameState }) {
     },
 
     applyChoice(choice, { gameState }) {
-      // Transition to tests
       return "heroJourney:tests:firstTrial";
     }
   };
 
   beatOrchestrator.registerBeat(id, beat);
 }
+

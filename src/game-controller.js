@@ -29,6 +29,25 @@ export function createGameController({ eventBus, gameState, beatOrchestrator, ui
     ui.renderStatus(payload);
   });
 
+  function startNewGame(config) {
+    const seed = config.seed ? config.seed : Date.now();
+    const rng = createRng(seed);
+    
+    gameState = createGameState({ rng, config });
+    
+    // Mystery setup (primary system now)
+    gameState.mystery = createMystery({ rng });
+    
+    const npcRoster = generateNPCRoster({ 
+      rng, 
+      roles: [NPC_ROLES.MENTOR, NPC_ROLES.ALLY, NPC_ROLES.ENEMY, NPC_ROLES.RIVAL] 
+    });
+    gameState.npcRoster = npcRoster;
+    
+    launchGame();
+    beatOrchestrator.startIntroBeat();
+  }
+
   function start() {
     loop.start();
     beatOrchestrator.startIntroBeat();

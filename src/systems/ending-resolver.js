@@ -1,52 +1,59 @@
-import { HERO_ARCHETYPES, WORLD_TONES, MACGUFFIN_STATUS } from "../config/constants.js";
+import { HERO_ARCHETYPES, WORLD_TONES } from "../config/constants.js";
 
 export function resolveEnding({ gameState }) {
-  const { player, world } = gameState;
+  const { player, world, narrative } = gameState;
   const archetype = player.archetype;
   const tone = world.tone;
-  const macguffinStatus = world.macGuffinStatus;
+  const mystery = gameState.mystery;
   const hasDivineCorruption = world.tags.includes("divine-corruption");
 
   // Divine Corruption path
   if (hasDivineCorruption) {
     if (archetype === HERO_ARCHETYPES.TRAGIC) {
-      return "You ascend as a new god, but the cost is everything you loved. Home survives, twisted in your image.";
+      return "You ascend as a new god, but the cost is everything you loved. The case remains eternally open.";
     }
-    return "Power courses through you—divine, terrible, transformative. You are no longer quite mortal.";
+    return "Power courses through you—divine, terrible, transformative. You are no longer quite mortal. But the mystery haunts you still.";
   }
 
-  // Primary MacGuffin success
-  if (macguffinStatus === MACGUFFIN_STATUS.PRIMARY_ACQUIRED) {
-    switch (archetype) {
-      case HERO_ARCHETYPES.EPIC:
-        return tone === WORLD_TONES.MYTHIC 
-          ? "You stand among the dying gods, victorious. Legends will be sung of this day for a thousand years."
-          : "You have won, but the cost is carved into your bones. Still, home endures.";
+  // Investigation outcome
+  if (mystery && mystery.progress.accusationMade) {
+    const correctAccusation = mystery.progress.correctKillerAccused;
+    const killer = mystery.suspects.get(mystery.killerId);
+    const killerName = killer ? killer.name : "the true killer";
+
+    if (correctAccusation) {
+      switch (archetype) {
+        case HERO_ARCHETYPES.EPIC:
+          return tone === WORLD_TONES.MYTHIC 
+            ? `You name ${killerName} before the assembled spirits. The case closes. The Interregnum shudders and begins to heal.`
+            : `You expose the truth. It is not glorious, but it is justice. The broken world finds momentary peace.`;
+        
+        case HERO_ARCHETYPES.REDEMPTIVE:
+          return `Through clarity and compassion, you reveal why ${killerName} acted. Understanding flows through the Interregnum. It matters.`;
+        
+        case HERO_ARCHETYPES.ROMANTIC:
+          return `You solve your own death not for vengeance, but for love—for those left behind. ${killerName}'s name becomes a footnote to a better story.`;
+        
+        case HERO_ARCHETYPES.RELUCTANT:
+          return `You never wanted to name names. But you did. The case is closed. The world moves on. You live with that.`;
+        
+        case HERO_ARCHETYPES.TRAGIC:
+          return `You identify ${killerName}, but the truth breaks something in you. You are right. That does not make you whole.`;
+        
+        default:
+          return `The killer stands revealed. ${killerName}. The mystery ends. What comes next is unknown.`;
+      }
+    } else {
+      // Wrong accusation
+      const innocent = mystery.suspects.get(mystery.killerId);
+      const accused = mystery.suspects.values().next().value; // Placeholder; in real implementation would track actual accusation
       
-      case HERO_ARCHETYPES.REDEMPTIVE:
-        return "Through mercy and sacrifice, you heal more than the threat. The world remembers your compassion.";
-      
-      case HERO_ARCHETYPES.ROMANTIC:
-        return "Love guided you through darkness. Together with those you cherish, you forge a new dawn.";
-      
-      case HERO_ARCHETYPES.RELUCTANT:
-        return "You never wanted this. But you did what was needed. That will have to be enough.";
-      
-      case HERO_ARCHETYPES.TRAGIC:
-        return "The MacGuffin saved your home, but you are broken beyond repair. A hero's scars run deeper than flesh.";
-      
-      default:
-        return "The threat ends. You return changed, carrying scars that will never fade.";
+      return archetype === HERO_ARCHETYPES.TRAGIC
+        ? `You accuse the wrong soul. Reality convulses with your mistake. The true killer remains hidden. The Interregnum will never rest.`
+        : `You name an innocent. The Interregnum rejects your answer. The mystery deepens. Your death remains unsolved.`;
     }
   }
 
-  // Backup MacGuffin path
-  if (macguffinStatus === MACGUFFIN_STATUS.BACKUP_ACQUIRED) {
-    return archetype === HERO_ARCHETYPES.REDEMPTIVE
-      ? "The backup brought closure, not salvation. But sometimes closure is all we need to rebuild."
-      : "You couldn't save everything. But what remains is precious—and yours to protect.";
-  }
-
-  // Failure states
-  return "You tried. The gods noticed. That matters, even if the world doesn't remember.";
+  // Fallback (no investigation/accusation made)
+  return "You tried to understand. Perhaps that is all anyone can do.";
 }

@@ -10,11 +10,8 @@ export function registerReturnWithElixirBeat({ beatOrchestrator, gameState }) {
     id,
     async enter({ gameState }) {
       const endingText = resolveEnding({ gameState });
-      const threat = gameState.world.homeThreat;
 
-      const instructions = returnWithElixirPrompt
-        .replace(/\${threat.name}/g, threat.name)
-        .replace(/\${endingText}/g, endingText);
+      const instructions = returnWithElixirPrompt.replace(/\${endingText}/g, endingText);
 
       const content = await generateBeatContent({
         gameState,
@@ -45,9 +42,8 @@ export function registerReturnWithElixirBeat({ beatOrchestrator, gameState }) {
       };
     },
 
-    applyChoice(choice, { gameState, beatOrchestrator }) {
-      // Reset to start structurally; new run will have fresh generated content.
-      return "heroJourney:intro:callToAdventure";
+    applyChoice(choice, { gameState }) {
+      return "heroJourney:intro:prologue";
     }
   };
 

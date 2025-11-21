@@ -10,9 +10,9 @@ export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
   const beat = {
     id,
     async enter({ gameState }) {
-      const threat = gameState.world.homeThreat;
+      const didAccuseCorrectly = gameState.narrative.flags["accusationResult"] === "correct";
 
-      const instructions = resurrectionPrompt.replace(/\${threat.name}/g, threat.name);
+      const instructions = resurrectionPrompt.replace(/\${accusationResult}/g, didAccuseCorrectly ? "correct" : "incorrect");
 
       const content = await generateBeatContent({
         gameState,
@@ -34,16 +34,13 @@ export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
 
     applyChoice(choice, { gameState }) {
       const { player, world } = gameState;
-
-      // Re-evaluate final archetype and world tone after LLM-driven deltas
       const newArchetype = evaluateArchetype({ player });
       player.archetype = newArchetype;
-
       updateWorldTone({ world, player });
-
       return "heroJourney:epilogue:returnWithElixir";
     }
   };
 
   beatOrchestrator.registerBeat(id, beat);
 }
+
