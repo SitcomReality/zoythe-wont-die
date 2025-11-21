@@ -80,7 +80,7 @@ export function createGameController({ eventBus, ui }) {
     }
 
     ui.renderChoices({ choices: gameState.narrative.pendingChoices });
-    ui.renderHistory({ history: gameState.narrative.history });
+    ui.renderHistory({ history: gameState.narrative.history, choiceHistory: gameState.narrative.choiceHistory });
     ui.renderStatus({});
     if (gameState.mystery) ui.renderDossier({ mystery: gameState.mystery });
   }
@@ -151,7 +151,7 @@ export function createGameController({ eventBus, ui }) {
   
   eventBus.on("narrative:update", payload => {
     ui.renderText(payload);
-    ui.renderHistory({ history: gameState.narrative.history });
+    ui.renderHistory({ history: gameState.narrative.history, choiceHistory: gameState.narrative.choiceHistory });
     // Also update dossier in case beat revealed clues
     if (gameState.mystery) ui.renderDossier({ mystery: gameState.mystery });
   });

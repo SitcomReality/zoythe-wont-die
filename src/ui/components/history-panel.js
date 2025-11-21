@@ -15,7 +15,7 @@ export function createHistoryPanel({ root }) {
   container.appendChild(list);
   root.appendChild(container);
 
-  function render({ history }) {
+  function render({ history, choiceHistory = [] }) {
     list.innerHTML = "";
     if (!history || !history.length) return;
 
@@ -58,6 +58,46 @@ export function createHistoryPanel({ root }) {
       item.appendChild(summary);
       item.appendChild(detail);
       list.appendChild(item);
+
+      // Insert the choice the player submitted to reach the next page (if any)
+      // We expect choiceHistory entries to include .beatIndex which corresponds to the beat index at time of choice.
+      const submitted = choiceHistory
+        .slice() // copy
+        .reverse()
+        .find(c => c.beatIndex === idx);
+
+      const choiceContainer = document.createElement("div");
+      choiceContainer.className = "history-panel__choice-row";
+
+      if (submitted && submitted.choice) {
+        const choiceBtn = document.createElement("button");
+        choiceBtn.className = "history-panel__choice-summary";
+        // Show single-line trimmed preview; full text in expanded area
+        const choiceLabel = typeof submitted.choice.label === "string" ? submitted.choice.label : (submitted.choice || {}).label || "";
+        choiceBtn.textContent = choiceLabel.length > 80 ? choiceLabel.substring(0, 77) + "..." : choiceLabel;
+
+        // When clicked, toggle a tiny popup/expand to show full choice
+        const full = document.createElement("div");
+        full.className = "history-panel__choice-full";
+        full.style.display = "none";
+        full.textContent = choiceLabel;
+
+        choiceBtn.addEventListener("click", () => {
+          const visible = full.style.display === "block";
+          full.style.display = visible ? "none" : "block";
+        });
+
+        choiceContainer.appendChild(choiceBtn);
+        choiceContainer.appendChild(full);
+      } else {
+        // If no choice recorded, show a muted placeholder for continuity
+        const placeholder = document.createElement("div");
+        placeholder.className = "history-panel__choice-placeholder";
+        placeholder.textContent = "—";
+        choiceContainer.appendChild(placeholder);
+      }
+
+      list.appendChild(choiceContainer);
     }
   }
 
