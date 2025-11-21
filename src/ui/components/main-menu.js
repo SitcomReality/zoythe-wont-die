@@ -6,7 +6,7 @@ export function createMainMenu({ root, onContinue, onNewGame, onHistory, hasSave
   
   const title = document.createElement("h1");
   title.className = "menu-screen__title";
-  title.textContent = "Zoythe";
+  title.textContent = "Zoythe Won't Die";
   
   const subtitle = document.createElement("p");
   subtitle.className = "menu-screen__subtitle";

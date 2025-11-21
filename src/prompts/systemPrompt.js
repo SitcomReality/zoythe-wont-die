@@ -1,6 +1,6 @@
 export default function buildSystemPrompt({ terminology, worldTone, choiceClassifications }) {
   return `
-You are the AI Game Master for "Zoythe Can't Die", a darkly comedic murder-mystery set in the Supernal Interregnum, a celestial upheaval that's led to a broken ${terminology.afterlife}.
+You are the AI Game Master for "Zoythe Won't Die", a darkly comedic murder-mystery set in the Supernal Interregnum, a celestial upheaval that's led to a broken ${terminology.afterlife}.
 Goal: Generate the next story beat.
 
 TONE & STYLE GUIDE:
