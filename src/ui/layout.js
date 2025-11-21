@@ -107,8 +107,13 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
   function showMainMenu({ onContinue, onNewGame, onHistory, hasSave }) {
     gameContainer.style.display = "none";
     menuContainer.style.display = "block";
-    historyContainer.style.display = "none"; 
-    dossierContainer.style.display = "none";
+    if (isMobile) {
+      historyContainer.classList.add("app-history--mobile-hidden");
+      dossierContainer.classList.add("app-dossier--mobile-hidden");
+    } else {
+      historyContainer.style.display = "none";
+      dossierContainer.style.display = "none";
+    }
     
     createMainMenu({ root: menuContainer, onContinue, onNewGame, onHistory, hasSave });
   }
@@ -117,8 +122,13 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
     gameContainer.style.display = "none";
     menuContainer.style.display = "block";
     // Keep sidebars hidden
-    historyContainer.style.display = "none"; 
-    dossierContainer.style.display = "none";
+    if (isMobile) {
+      historyContainer.classList.add("app-history--mobile-hidden");
+      dossierContainer.classList.add("app-dossier--mobile-hidden");
+    } else {
+      historyContainer.style.display = "none";
+      dossierContainer.style.display = "none";
+    }
     
     createNewGameScreen({ root: menuContainer, onStart, onCancel });
   }
@@ -128,7 +138,9 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
     gameContainer.style.display = "flex";
     
     // Restore sidebar visibility for desktop
-    if (!isMobile) {
+    if (isMobile) {
+      // keep current mobile-hidden classes as they represent visibility toggles
+    } else {
       historyContainer.style.display = "flex";
       dossierContainer.style.display = "flex";
     }
