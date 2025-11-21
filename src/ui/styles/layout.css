@@ -58,7 +58,7 @@
 
 .app-text {
   flex: 1;
-  min-height: 0;
+  min-height: 50%;
 }
 
 .app-input-area {
