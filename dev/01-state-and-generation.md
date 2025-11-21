@@ -1,57 +1,70 @@
 # Phase 1: State & Procedural Generation
 
-**Goal**: Replace the generic "MacGuffin" logic with a robust "Mystery Engine" that generates a victim (player), suspects, a killer, a weapon, and clues.
+**Goal**: Replace the generic "MacGuffin" logic with a "Mystery Engine" that generates a victim (player), suspects, a killer, a weapon, and clues, adhering to "Twist" archetypes.
 
-## 1. New File: `src/systems/mystery-generator.js`
-This will replace or heavily augment `macguffin-generator.js`.
+## 1. New System: `src/systems/mystery-generator.js`
+Replace `macguffin-generator.js` with a comprehensive mystery factory.
 
-### Requirements:
-- **`createMystery({ rng })`**: The main entry point.
-- **Components to Generate**:
-  - **The Crime**: Who, How, Where, Why.
-  - **The Weapon**: Physical object or metaphysical concept linking the murder to the Death God's fall.
-  - **The Suspects**: 3-4 NPCs with specific archetypes (Lover, Rival, Mentor, etc.).
+### `createMystery({ rng })`
+Returns a `mystery` object to be stored in `GameState`.
+1. **Select Twist Template**: Choose one archetype to drive the narrative logic (e.g., "Mentor Betrayal", "Cosmic Conspiracy", "Personal Revenge").
+2. **Generate Victim Profile**: Define the player's pre-death identity and initial cause-of-death memories (or lack thereof).
+3. **Generate Weapon**:
+   - **Type**: Physical (dagger), Cosmic (void-spell), or Informational (secret).
+   - **Link**: How it connects the murder to the Death God's fall.
+4. **Generate Suspects**: Call `SuspectGenerator`.
+5. **Select Killer**: Assign guilt based on the Twist Template.
+6. **Seed Clues**: Call `ClueGenerator`.
+7. **Validate**: Call `MysteryValidator`.
 
-## 2. New File: `src/systems/suspect-generator.js`
-Separated logic for generating the cast.
+## 2. New System: `src/systems/suspect-generator.js`
 
-### Requirements:
-- **`generateCohort({ rng, victimProfile })`**:
-  - Generate 3-4 NPCs.
-  - Assign Roles: `MENTOR`, `RIVAL`, `LOVER`, `ALLY`.
-  - Assign **Motives**: Why would they kill the victim?
-  - Assign **Alibis**:
-    - True Alibis (verifiable).
-    - False Alibis (breakable).
-  - Create a **Relationship Matrix** (how they feel about each other).
+### `generateCohort({ rng, twistTemplate })`
+- **Roles**: Must include specific roles required by the Twist (e.g., if "Mentor Betrayal", the Mentor must be generated). Fill remaining slots with archetypes (Lover, Rival, Ally, Zealot).
+- **Motives**: Generate a plausible motive for *each* suspect, not just the killer.
+- **Alibis**:
+  - Structure: `{ statement: string, isTrue: boolean, breakCondition: clueId | null }`.
+  - False alibis must have a corresponding "Alibi Breaker" clue.
+- **Relationships**: A simple matrix or list of links between suspects (e.g., "A is secretly in love with B").
 
-## 3. New File: `src/systems/clue-generator.js`
-Logic for seeding evidence across the narrative.
+## 3. New System: `src/systems/clue-generator.js`
 
-### Requirements:
-- **Types of Clues**:
-  - `PHYSICAL`: Items found at scenes.
-  - `TESTIMONIAL`: Things people say.
-  - `CIRCUMSTANTIAL`: Environmental details.
-- **Mapping**: Each clue must point to a suspect or rule one out.
-- **Seeding**: Assign clues to generic "buckets" (e.g., "Early Game Clues", "Mid Game Clues") for the Beat Orchestrator to distribute.
+### `seedClues({ suspects, killer, weapon, rng })`
+- Generate ~12 clues distributed across 3 tiers:
+  - **Tier 1 (Early/Physical)**: Found in Act I/Early Act II. Establishes method/location (e.g., "The murder weapon", "A torn piece of cloth").
+  - **Tier 2 (Mid/Testimonial)**: Contradictions in alibis, witness statements, motive revealers.
+  - **Tier 3 (Late/Revelation)**: The "Smoking Gun" or Weapon usage logic, often locked behind specific beats.
+- **Mapping**: Each clue object must have:
+  - `id`: unique string.
+  - `description`: narrative text.
+  - `relatedSuspectIds`: array of IDs this clue implicates or clears.
+  - `truthValue`: boolean (to support red herrings).
 
-## 4. Update: `src/state/game-state.js`
-- Remove `macguffinStatus` generic fields if obsolete.
+## 4. New System: `src/systems/mystery-validator.js`
+
+### `ensureSolvable(mystery)`
+- **Check**: At least 3 clues point to the Killer.
+- **Check**: At least 1 clue rules out each innocent suspect (or breaks their false alibi if they are lying for non-murder reasons).
+- **Check**: The "Weapon" is accessible via the narrative graph (i.e., assigned to a beat or location).
+
+## 5. Update: `src/state/game-state.js`
 - Add `mystery` slice:
   ```javascript
   mystery: {
+    twist: "string (id)",
     victim: { ... },
-    killerId: "...",
+    killerId: "string",
     weapon: { ... },
-    suspects: Map<Id, SuspectData>,
+    suspects: Map<Id, SuspectData>, // Includes alibis and motives
     clues: {
-      discovered: [],
-      hidden: []
+      all: Map<Id, ClueData>, // Source of truth
+      discovered: Set<Id>,    // IDs of found clues
+      knownSuspects: Set<Id>  // IDs of met suspects
     },
-    state: {
-      suspicionMap: {},
-      accusationMade: false
+    progress: {
+      accusationMade: boolean,
+      correctKillerAccused: boolean,
+      weaponSecured: boolean
     }
   }
 
