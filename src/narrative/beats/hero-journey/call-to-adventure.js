@@ -6,7 +6,7 @@ export function registerCallToAdventureBeat({ beatOrchestrator }) {
 
   const beat = {
     id,
-    async enter({ gameState }) {
+    async enter({ gameState, terminology }) {
       const mystery = gameState.mystery;
       const weapon = mystery ? mystery.weapon.name : "an unknown weapon";
 

@@ -6,7 +6,7 @@ export function registerPrologueBeat({ beatOrchestrator, gameState }) {
 
   const beat = {
     id,
-    async enter({ gameState }) {
+    async enter({ gameState, terminology }) {
       const instructions = `
         This is the Prologue.
         The protagonist has just died. The sensation is confusing, broken, and wrong.
