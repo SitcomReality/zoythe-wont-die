@@ -10,6 +10,14 @@ function deserializeMap(entries) {
   return new Map(entries);
 }
 
+function serializeSet(set) {
+  return Array.from(set);
+}
+
+function deserializeSet(entries) {
+  return new Set(entries);
+}
+
 export function saveGame(gameState) {
   try {
     const serialized = {
@@ -25,6 +33,15 @@ export function saveGame(gameState) {
         ...gameState.narrative
       },
       npcRoster: serializeMap(gameState.npcRoster),
+      mystery: gameState.mystery ? {
+        ...gameState.mystery,
+        suspects: serializeMap(gameState.mystery.suspects),
+        clues: {
+          all: serializeMap(gameState.mystery.clues.all),
+          discovered: serializeSet(gameState.mystery.clues.discovered),
+          knownSuspects: serializeSet(gameState.mystery.clues.knownSuspects)
+        }
+      } : null,
       timestamp: Date.now()
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serialized));
@@ -48,6 +65,12 @@ export function loadGame() {
     }
     if (data.npcRoster) {
       data.npcRoster = deserializeMap(data.npcRoster);
+    }
+    if (data.mystery) {
+      data.mystery.suspects = deserializeMap(data.mystery.suspects);
+      data.mystery.clues.all = deserializeMap(data.mystery.clues.all);
+      data.mystery.clues.discovered = deserializeSet(data.mystery.clues.discovered);
+      data.mystery.clues.knownSuspects = deserializeSet(data.mystery.clues.knownSuspects);
     }
 
     // Re-attach methods (hydration) is tricky in FP. 

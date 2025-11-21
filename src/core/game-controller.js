@@ -9,6 +9,7 @@ import { createRailroadEngine } from "../systems/railroad-engine.js";
 import { registerCoreBeats } from "../narrative/beats/beat-registry.js";
 import { initDesignDocHooks } from "../integration/design-doc-hooks.js";
 import { NPC_ROLES } from "../config/constants.js";
+import { createMystery } from "../systems/mystery-generator.js";
 
 export function createGameController({ eventBus, ui }) {
   let gameState = null;
@@ -41,7 +42,7 @@ export function createGameController({ eventBus, ui }) {
     
     gameState = createGameState({ rng, config });
     
-    // Procedural Gen Setup
+    // Procedural Gen Setup - MacGuffin (legacy, to be removed in Phase 4)
     const macGuffinData = generateMacGuffin({ rng });
     gameState.world.homeThreat = macGuffinData.threat;
     gameState.world.primaryMacGuffin = macGuffinData.primary;
@@ -52,6 +53,11 @@ export function createGameController({ eventBus, ui }) {
       roles: [NPC_ROLES.MENTOR, NPC_ROLES.ALLY] 
     });
     gameState.npcRoster = npcRoster;
+    
+    // NEW: Generate Mystery
+    const mystery = createMystery({ rng });
+    gameState.mystery = mystery;
+    console.log("[game-controller] Mystery generated:", mystery);
     
     launchGame();
     beatOrchestrator.startIntroBeat();

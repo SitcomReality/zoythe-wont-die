@@ -33,6 +33,7 @@ export function createGameState({ rng, config = {} }) {
     player,
     world,
     narrative,
+    mystery: null, // Will be populated during game initialization
     config // store initial config
   };
 }
@@ -49,6 +50,19 @@ export function hydrateGameState(data, rng) {
   Object.assign(fresh.narrative, data.narrative);
   Object.assign(fresh.world, data.world);
   Object.assign(fresh.player, data.player);
+  
+  // Hydrate mystery state
+  if (data.mystery) {
+    fresh.mystery = {
+      ...data.mystery,
+      suspects: new Map(data.mystery.suspects),
+      clues: {
+        all: new Map(data.mystery.clues.all),
+        discovered: new Set(data.mystery.clues.discovered),
+        knownSuspects: new Set(data.mystery.clues.knownSuspects)
+      }
+    };
+  }
   
   // Fix nested objects if needed (e.g. stats are object, they copy fine)
   // Flags are object, copy fine.
