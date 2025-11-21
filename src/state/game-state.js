@@ -33,7 +33,7 @@ export function createGameState({ rng, config = {} }) {
     player,
     world,
     narrative,
-    mystery: null, // Will be populated during game initialization
+    mystery: null, // Initialize mystery slot
     config // store initial config
   };
 }
@@ -41,8 +41,6 @@ export function createGameState({ rng, config = {} }) {
 // Helper to hydrate loaded state
 export function hydrateGameState(data, rng) {
   // Reconstruct method-bearing objects
-  // In a real app, we'd probably use classes or prototype injection, 
-  // but here we'll just re-create the closures and copy data over.
   
   const fresh = createGameState({ rng });
   
@@ -51,22 +49,13 @@ export function hydrateGameState(data, rng) {
   Object.assign(fresh.world, data.world);
   Object.assign(fresh.player, data.player);
   
-  // Hydrate mystery state
+  // Hydrate mystery if present
   if (data.mystery) {
-    fresh.mystery = {
-      ...data.mystery,
-      suspects: new Map(data.mystery.suspects),
-      clues: {
-        all: new Map(data.mystery.clues.all),
-        discovered: new Set(data.mystery.clues.discovered),
-        knownSuspects: new Set(data.mystery.clues.knownSuspects)
-      }
-    };
+    fresh.mystery = data.mystery;
+    // Note: Maps inside mystery (suspects, clues.all) must be hydrated by caller (persistence.js)
+    // before passing 'data' here, or handled here. 
+    // Currently persistence.js handles hydration of known maps.
   }
-  
-  // Fix nested objects if needed (e.g. stats are object, they copy fine)
-  // Flags are object, copy fine.
-  // Relationships (Map) should have been handled by persistence layer loading.
   
   return fresh;
 }

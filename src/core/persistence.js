@@ -14,8 +14,8 @@ function serializeSet(set) {
   return Array.from(set);
 }
 
-function deserializeSet(entries) {
-  return new Set(entries);
+function deserializeSet(arr) {
+  return new Set(arr);
 }
 
 export function saveGame(gameState) {
@@ -27,19 +27,20 @@ export function saveGame(gameState) {
       },
       world: {
         ...gameState.world,
-        // activeEffects might be complex objects, but they are likely POJOs from generators
       },
       narrative: {
         ...gameState.narrative
       },
       npcRoster: serializeMap(gameState.npcRoster),
+      // Serialize Mystery
       mystery: gameState.mystery ? {
         ...gameState.mystery,
         suspects: serializeMap(gameState.mystery.suspects),
         clues: {
-          all: serializeMap(gameState.mystery.clues.all),
-          discovered: serializeSet(gameState.mystery.clues.discovered),
-          knownSuspects: serializeSet(gameState.mystery.clues.knownSuspects)
+            ...gameState.mystery.clues,
+            all: serializeMap(gameState.mystery.clues.all),
+            discovered: serializeSet(gameState.mystery.clues.discovered),
+            knownSuspects: serializeSet(gameState.mystery.clues.knownSuspects)
         }
       } : null,
       timestamp: Date.now()
@@ -66,17 +67,25 @@ export function loadGame() {
     if (data.npcRoster) {
       data.npcRoster = deserializeMap(data.npcRoster);
     }
+    
+    // Hydrate Mystery Maps/Sets
     if (data.mystery) {
-      data.mystery.suspects = deserializeMap(data.mystery.suspects);
-      data.mystery.clues.all = deserializeMap(data.mystery.clues.all);
-      data.mystery.clues.discovered = deserializeSet(data.mystery.clues.discovered);
-      data.mystery.clues.knownSuspects = deserializeSet(data.mystery.clues.knownSuspects);
+        if (data.mystery.suspects) {
+            data.mystery.suspects = deserializeMap(data.mystery.suspects);
+        }
+        if (data.mystery.clues) {
+            if (data.mystery.clues.all) {
+                data.mystery.clues.all = deserializeMap(data.mystery.clues.all);
+            }
+            if (data.mystery.clues.discovered) {
+                data.mystery.clues.discovered = deserializeSet(data.mystery.clues.discovered);
+            }
+            if (data.mystery.clues.knownSuspects) {
+                data.mystery.clues.knownSuspects = deserializeSet(data.mystery.clues.knownSuspects);
+            }
+        }
     }
 
-    // Re-attach methods (hydration) is tricky in FP. 
-    // We will rely on state-creation functions to re-wrap these data objects 
-    // or designing the state system to accept plain objects as initial state.
-    // For now, we'll return the raw data and let the GameController handle hydration/merging.
     return data;
   } catch (e) {
     console.error("Failed to load game:", e);
@@ -91,3 +100,4 @@ export function hasSavedGame() {
 export function clearSave() {
   localStorage.removeItem(STORAGE_KEY);
 }
+

@@ -2,188 +2,80 @@ import { generateCohort } from "./suspect-generator.js";
 import { seedClues } from "./clue-generator.js";
 import { ensureSolvable } from "./mystery-validator.js";
 
-const TWIST_TEMPLATES = [
-  {
-    id: "mentorBetrayal",
-    name: "The Mentor's Secret",
-    description: "The trusted guide harbored dark motives",
-    requiredRoles: ["mentor"],
-    killerRolePreference: "mentor"
-  },
-  {
-    id: "cosmicConspiracy",
-    name: "Divine Conspiracy",
-    description: "Multiple gods orchestrated the death",
-    requiredRoles: ["divineRemnant", "zealot"],
-    killerRolePreference: "divineRemnant"
-  },
-  {
-    id: "personalRevenge",
-    name: "Vengeful Past",
-    description: "An old wound seeks retribution",
-    requiredRoles: ["rival", "loveInterest"],
-    killerRolePreference: "rival"
-  },
-  {
-    id: "mistakenlIdentity",
-    name: "Wrong Target",
-    description: "You were killed by mistake",
-    requiredRoles: ["ally", "enemy"],
-    killerRolePreference: "enemy"
-  },
-  {
-    id: "sacrificialRitual",
-    name: "The Necessary Sacrifice",
-    description: "Your death was meant to prevent something worse",
-    requiredRoles: ["mentor", "zealot"],
-    killerRolePreference: "zealot"
-  }
-];
+const TWISTS = ["ritual-sacrifice", "jealous-rage", "accidental-godslaying", "cosmic-conspiracy"];
 
-const VICTIM_ARCHETYPES = [
-  "martyr",
-  "traitor",
-  "innocent",
-  "prophet",
-  "thief",
-  "witness"
+const WEAPONS = [
+  { name: "Void Dagger", type: "physical", linkToDeathGod: "Forged from the Death God's ribs." },
+  { name: "Word of Unmaking", type: "cosmic", linkToDeathGod: "A spoken fragment of the Death God's last breath." },
+  { name: "Shard of the Mirror", type: "physical", linkToDeathGod: "Reflects the void where the God once stood." },
+  { name: "Poisoned Nectar", type: "physical", linkToDeathGod: "Distilled from the rotting divine garden." }
 ];
-
-const WEAPON_TYPES = {
-  PHYSICAL: [
-    {
-      id: "divine-dagger",
-      type: "physical",
-      name: "Divine Dagger",
-      description: "A ceremonial blade stolen from a dying god's shrine",
-      linkToDeathGod: "Forged from the Death God's own rib, it can sever souls",
-      discoveryTier: 2
-    },
-    {
-      id: "blessed-garrote",
-      type: "physical",
-      name: "Blessed Garrote",
-      description: "A strangling wire inscribed with prayers",
-      linkToDeathGod: "The prayers invoke the Death God's name—now corrupted",
-      discoveryTier: 2
-    }
-  ],
-  COSMIC: [
-    {
-      id: "unraveling-curse",
-      type: "cosmic",
-      name: "The Unraveling Curse",
-      description: "A spell that causes reality to reject a soul",
-      linkToDeathGod: "Cast using stolen fragments of the Death God's dying breath",
-      discoveryTier: 3
-    },
-    {
-      id: "void-touch",
-      type: "cosmic",
-      name: "Void Touch",
-      description: "A technique that erases someone from existence",
-      linkToDeathGod: "Only possible in the moment the Death God fell",
-      discoveryTier: 3
-    }
-  ],
-  INFORMATIONAL: [
-    {
-      id: "forbidden-knowledge",
-      type: "informational",
-      name: "Forbidden Knowledge",
-      description: "A secret so terrible it kills those who learn it",
-      linkToDeathGod: "The truth of what caused the Death God's demise",
-      discoveryTier: 3
-    }
-  ]
-};
 
 export function createMystery({ rng }) {
-  // 1. Select Twist Template
-  const twist = rng.pick(TWIST_TEMPLATES);
+  let attempts = 0;
+  const MAX_ATTEMPTS = 5;
 
-  // 2. Generate Victim Profile
-  const victim = {
-    id: "player",
-    name: null, // Set during character creation
-    archetypeHint: rng.pick(VICTIM_ARCHETYPES),
-    causeOfDeath: {
-      knownToPlayer: false,
-      description: "You remember nothing, except that you were murdered."
-    },
-    bodyLocation: generateBodyLocation(rng)
-  };
+  while (attempts < MAX_ATTEMPTS) {
+    attempts++;
+    
+    // 1. Select Twist
+    const twist = rng.pick(TWISTS);
 
-  // 3. Generate Weapon
-  const weaponCategory = rng.pick(["PHYSICAL", "COSMIC", "INFORMATIONAL"]);
-  const weaponPool = WEAPON_TYPES[weaponCategory];
-  const weapon = rng.pick(weaponPool);
+    // 2. Generate Victim Profile
+    const victim = {
+      id: "player",
+      name: "The Protagonist",
+      archetypeHint: "unknown",
+      causeOfDeath: { knownToPlayer: false, description: "Violent dissolution of the soul." },
+      bodyLocation: "The Sanctum of Beginning"
+    };
 
-  // 4. Generate Suspects
-  const suspects = generateCohort({ rng, twistTemplate: twist });
+    // 3. Generate Weapon
+    const weaponTemplate = rng.pick(WEAPONS);
+    const weapon = {
+      id: `weapon-${rng.int(100,999)}`,
+      ...weaponTemplate,
+      description: `A lethal artifact. ${weaponTemplate.linkToDeathGod}`,
+      discoveryTier: 2
+    };
 
-  // 5. Select Killer
-  const killerId = selectKiller({ suspects, twist, rng });
+    // 4. Generate Suspects
+    const suspects = generateCohort({ rng, twistTemplate: twist });
 
-  // 6. Seed Clues
-  const clues = seedClues({ suspects, killerId, weapon, rng, twistTemplate: twist });
+    // 5. Select Killer
+    const suspectIds = Array.from(suspects.keys());
+    if (suspectIds.length === 0) continue; // Retry if no suspects
+    
+    const killerId = rng.pick(suspectIds);
+    const killer = suspects.get(killerId);
+    if (killer) {
+      killer.alibi.isTrue = false; // Killer lies
+      // We could modify motive here to fit the twist specifically if needed
+    }
 
-  // 7. Initialize Progress
-  const progress = {
-    accusationMade: false,
-    correctKillerAccused: false,
-    weaponSecured: false,
-    cluesFoundCount: 0
-  };
+    // 6. Seed Clues
+    const clueData = seedClues({ suspects, killerId, weapon, rng, twistTemplate: twist });
 
-  const mystery = {
-    twist: twist.id,
-    victim,
-    killerId,
-    weapon,
-    suspects,
-    clues: {
-      all: clues,
-      discovered: new Set(),
-      knownSuspects: new Set()
-    },
-    progress
-  };
+    const mystery = {
+      twist,
+      victim,
+      weapon,
+      killerId,
+      suspects, // Map
+      clues: clueData, // { all: Map, discovered: Set, knownSuspects: Set }
+      progress: {
+        accusationMade: false,
+        correctKillerAccused: false,
+        weaponSecured: false,
+        cluesFoundCount: 0
+      }
+    };
 
-  // 8. Validate
-  const validation = ensureSolvable(mystery);
-  if (!validation.valid) {
-    console.warn("[mystery-generator] Generated mystery failed validation:", validation.issues);
-    // In a production system, we might regenerate here
-    // For now, we'll log and continue
+    // 7. Validate
+    if (ensureSolvable(mystery)) {
+      return mystery;
+    }
   }
 
-  return mystery;
-}
-
-function generateBodyLocation(rng) {
-  const locations = [
-    "the steps of a ruined temple",
-    "a crossroads between dying worlds",
-    "the shore of the River of Souls",
-    "beneath a dying god's statue",
-    "in the ashes of your own home",
-    "at the threshold of the afterlife gates"
-  ];
-  return rng.pick(locations);
-}
-
-function selectKiller({ suspects, twist, rng }) {
-  // Try to find a suspect matching the twist's preferred role
-  const preferred = Array.from(suspects.values()).filter(
-    s => s.role === twist.killerRolePreference
-  );
-
-  if (preferred.length > 0) {
-    return rng.pick(preferred).id;
-  }
-
-  // Fallback: pick any suspect
-  const allSuspects = Array.from(suspects.values());
-  return rng.pick(allSuspects).id;
+  throw new Error("Failed to generate valid mystery after max attempts");
 }
