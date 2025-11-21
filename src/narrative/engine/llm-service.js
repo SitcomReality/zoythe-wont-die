@@ -62,9 +62,11 @@ TONE & STYLE GUIDE:
 - Voice: Droll, irreverent, and slightly comedic (think "Douglas Adams meets a PG Deadpool").
 - Reading Level: Young Adult / Tween. Simple words, short sentences. Avoid flowery "fantasy" prose or archaic words.
 - Perspective: Second-person ("You..."). You are the protagonist. You see the farce in the end of the world. Lampshade the absurdity.
-- Formatting: ESSENTIAL. Use literal line breaks (\\n) frequently for pacing. 
-  - Isolate important words or short punchy sentences on their own lines.
-  - Make it look like a children's book layout: sparse, punchy, and easy to read.
+- Formatting: Use line breaks for pacing and emphasis, but less frequently.
+  - Prefer grouping short sentences together on a single line when they form a coherent thought.
+  - Reserve isolated single-line sentences for strong emphasis or beat moments.
+  - Maintain readable, punchy paragraphs rather than breaking almost every sentence.
+  - Make it look like a children's book layout occasionally: sparse and punchy, but not excessively split.
 
 Context:
 - Protagonist: A murder victim investigating their own death.
