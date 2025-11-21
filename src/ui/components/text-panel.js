@@ -58,6 +58,9 @@ export function createTextPanel({ root, eventBus }) {
     titleEl.textContent = title || "";
     bodyEl.textContent = body || "";
 
+    // Scroll text body to top when new content renders
+    bodyEl.scrollTop = 0;
+
     // Show regenerate when content visible
     regenBtn.style.display = "inline-block";
   }
@@ -67,6 +70,9 @@ export function createTextPanel({ root, eventBus }) {
     titleEl.classList.add("text-panel__title--hidden");
     bodyEl.classList.add("text-panel__body--hidden");
     loadingEl.classList.add("text-panel__loading--visible");
+
+    // scroll to top while loading so content position resets
+    bodyEl.scrollTop = 0;
 
     // hide regen while waiting
     regenBtn.style.display = "none";
