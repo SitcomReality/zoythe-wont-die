@@ -1,7 +1,7 @@
 import { LOOP_PHASES } from "../../../config/constants.js";
 import { resolveEnding } from "../../../systems/ending-resolver.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import returnWithElixirPrompt from "../../prompts/hero/returnWithElixir.js";
+import returnWithElixirPrompt from "../../../prompts/hero/returnWithElixir.js";
 
 export function registerReturnWithElixirBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:epilogue:returnWithElixir";
