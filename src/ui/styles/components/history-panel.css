@@ -58,18 +58,24 @@
   line-height: 1.4;
   word-break: break-word;
   white-space: normal;
+  overflow: hidden;
+  max-height: 1.6em; /* roughly one line (line-height 1.4 * 1.15rem ~ 1.6em) */
+  transition: max-height 0.25s ease, opacity 0.18s;
 }
 
-.history-panel__item--expanded .history-panel__button {
-  background: rgba(230, 179, 90, 0.08);
+/* Expanded state lets content grow to show full body */
+.history-panel__item--expanded .history-panel__content {
+  max-height: 1000px;
 }
 
+/* Choice row: clamp to single line and expand similarly */
 .history-panel__choice-row {
   padding: 4px;
   border-bottom: 1px solid rgba(255,255,255,0.02);
   background: rgba(0,0,0,0.02);
 }
 
+/* Make the button text clamp visually */
 .history-panel__choice-button {
   width: 100%;
   text-align: left;
@@ -80,11 +86,26 @@
   color: var(--text-main);
   font-size: 0.9rem;
   cursor: pointer;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1; /* clamp to 1 line */
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: normal;
   word-break: break-word;
   font-family: inherit;
 }
 
+/* When expanded, remove clamping and allow full height */
+.history-panel__choice-row--expanded .history-panel__choice-button {
+  -webkit-line-clamp: unset;
+  display: block;
+  white-space: normal;
+  background: rgba(230, 179, 90, 0.08);
+  color: var(--text-main);
+}
+
+/* Keep the hover/active styles */
 .history-panel__choice-button:hover {
   background: rgba(230, 179, 90, 0.04);
 }
@@ -98,6 +119,7 @@
   color: var(--text-main);
 }
 
+/* Mobile adjustments remain unchanged */
 @media (max-width: 768px) {
   .history-panel__choice-row {
     padding: 8px 16px;

@@ -33,14 +33,9 @@ export function createHistoryPanel({ root }) {
       const contentEl = document.createElement("div");
       contentEl.className = "history-panel__content";
       
+      // Always store full body in DOM; visual clipping handled by CSS
       const fullBody = entry.body || '';
-      const trimmedBody = fullBody.split('\n')[0].substring(0, 60);
-      const isTrimmed = trimmedBody.length === 60 && fullBody.length > 60;
-      
-      contentEl.textContent = isTrimmed ? trimmedBody + "..." : fullBody;
-      contentEl.dataset.full = fullBody;
-      contentEl.dataset.trimmed = isTrimmed ? trimmedBody + "..." : fullBody;
-      contentEl.dataset.expanded = "false";
+      contentEl.textContent = fullBody;
 
       button.appendChild(titleEl);
       button.appendChild(contentEl);
@@ -49,12 +44,8 @@ export function createHistoryPanel({ root }) {
       button.addEventListener("click", () => {
         expanded = !expanded;
         if (expanded) {
-          contentEl.textContent = contentEl.dataset.full;
-          contentEl.dataset.expanded = "true";
           item.classList.add("history-panel__item--expanded");
         } else {
-          contentEl.textContent = contentEl.dataset.trimmed;
-          contentEl.dataset.expanded = "false";
           item.classList.remove("history-panel__item--expanded");
         }
       });
@@ -78,25 +69,17 @@ export function createHistoryPanel({ root }) {
         const choiceBtn = document.createElement("button");
         choiceBtn.className = "history-panel__choice-button";
         
+        // Put full label in the button; CSS will clamp to one line until expanded
         const choiceLabel = typeof submitted.choice.label === "string" ? submitted.choice.label : (submitted.choice || {}).label || "";
-        const choiceTrimmed = choiceLabel.length > 80 ? choiceLabel.substring(0, 77) + "..." : choiceLabel;
-        
-        choiceBtn.textContent = choiceTrimmed;
-        choiceBtn.dataset.full = choiceLabel;
-        choiceBtn.dataset.trimmed = choiceTrimmed;
-        choiceBtn.dataset.expanded = "false";
+        choiceBtn.textContent = choiceLabel;
 
         let choiceExpanded = false;
         choiceBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           choiceExpanded = !choiceExpanded;
           if (choiceExpanded) {
-            choiceBtn.textContent = choiceBtn.dataset.full;
-            choiceBtn.dataset.expanded = "true";
             choiceContainer.classList.add("history-panel__choice-row--expanded");
           } else {
-            choiceBtn.textContent = choiceBtn.dataset.trimmed;
-            choiceBtn.dataset.expanded = "false";
             choiceContainer.classList.remove("history-panel__choice-row--expanded");
           }
         });
