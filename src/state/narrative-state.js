@@ -11,6 +11,8 @@ export function createNarrativeState() {
     refusalCount: 0,
     choiceHistory: [],
     railsInvoked: [],
+    // Flags bag for ephemeral narrative markers (e.g., accusationResult)
+    flags: Object.create(null),
     // New: Track beat repetition and urgency
     beatRepeatCount: 0, // How many times the current beat has been visited
     urgencyLevel: 0, // Accumulates when player doesn't advance; triggers railroading at threshold
