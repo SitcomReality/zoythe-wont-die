@@ -28,7 +28,7 @@ const SUSPECT_TEMPLATES = [
   }
 ];
 
-const NAMES = ["Kael", "Mira", "Zara", "Finn", "Corvus", "Thalia", "Vex", "Orion", "Lyra", "Darius"];
+const NAMES = ["Kael", "Mira", "Zara", "Morglet", "Corvus", "Thalia", "Vex", "Orion", "Lyra", "Darius"];
 
 export function generateCohort({ rng, twistTemplate }) {
   const suspects = new Map();
