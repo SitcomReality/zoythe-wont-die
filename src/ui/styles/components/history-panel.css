@@ -65,7 +65,7 @@
 }
 
 .history-panel__choice-row {
-  padding: 8px 20px;
+  padding: 4px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.02);
   background: rgba(0,0,0,0.02);
 }
@@ -73,11 +73,11 @@
 .history-panel__choice-button {
   width: 100%;
   text-align: left;
-  padding: 8px 12px;
+  padding: 4px 12px;
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-main);
   font-size: 0.9rem;
   cursor: pointer;
   white-space: normal;
