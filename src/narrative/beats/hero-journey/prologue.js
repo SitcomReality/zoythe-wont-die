@@ -1,6 +1,6 @@
 import { LOOP_PHASES } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import prologuePrompt from "../../../prompts/hero/prologue.js";
+import getProloguePrompt from "../../../prompts/hero/prologue.js";
 
 export function registerPrologueBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:intro:prologue";
@@ -8,7 +8,7 @@ export function registerPrologueBeat({ beatOrchestrator, gameState }) {
   const beat = {
     id,
     async enter({ gameState, terminology, previousPage, previousChoice }) {
-      const instructions = prologuePrompt;
+      const instructions = getProloguePrompt(gameState.rng);
 
       const content = await generateBeatContent({
         gameState,

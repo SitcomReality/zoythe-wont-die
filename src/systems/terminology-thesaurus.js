@@ -154,6 +154,66 @@ const THESAURUS = {
     "ironic",
     "absurdist",
     "mockingly theatrical"
+  ],
+
+  existence_distress: [
+    "confusing",
+    "broken",
+    "wrong",
+    "fractured",
+    "disorienting",
+    "contradictory",
+    "warped",
+    "incoherent",
+    "scattered"
+  ],
+
+  fragmenting_soul: [
+    "unraveling",
+    "dissolving",
+    "coming apart",
+    "dispersing",
+    "scattering",
+    "dissipating",
+    "crumbling"
+  ],
+
+  numb_quiet: [
+    "silent",
+    "hushed",
+    "muted",
+    "soundless",
+    "void-like",
+    "quiet",
+    "deafening in its silence"
+  ],
+
+  dreadful_tone: [
+    "terrifyingly",
+    "horrifyingly",
+    "sickeningly",
+    "appallingly",
+    "dreadfully",
+    "disturbingly"
+  ],
+
+  colorless_world: [
+    "grey",
+    "ashen",
+    "colorless",
+    "pallid",
+    "drained",
+    "washed-out",
+    "bleached"
+  ],
+
+  sundered_state: [
+    "shattered",
+    "fractured",
+    "splintered",
+    "cracked",
+    "sundered",
+    "split"
   ]
 };
 
