@@ -49,8 +49,6 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     },
     world: {
       tone: world.tone,
-      threat: world.homeThreat?.name,
-      macGuffin: world.primaryMacGuffin?.name,
       tags: world.tags,
     },
     mystery: mysteryContext,

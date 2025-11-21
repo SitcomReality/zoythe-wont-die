@@ -3,11 +3,6 @@ import { WORLD_TONES } from "../config/constants.js";
 export function createWorldState({ rng }) {
   return {
     tone: WORLD_TONES.MYTHIC,
-    dyingGodsLevel: 1,
-    omensSeen: 0,
-    homeThreatLevel: 1,
-    homeThreat: null,
-    macGuffinStatus: "none",
     activeEffects: [],
     flags: Object.create(null),
     tags: [],

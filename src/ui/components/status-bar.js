@@ -24,15 +24,11 @@ export function createStatusBar({ root, gameState }) {
     // Left: archetype and tone
     left.textContent = `${player.archetype} • ${world.tone}`;
     
-    // Center: threat and heroism indicators
-    const threatDots = "●".repeat(Math.min(world.homeThreatLevel, 5));
+    // Center: heroism indicator
     const heroismLevel = Math.max(0, Math.min(5, Math.floor(player.heroism / 2)));
     const heroismDots = "✦".repeat(heroismLevel);
     
-    center.innerHTML = `
-      <span class="status-bar__threat" title="Threat Level">${threatDots}</span>
-      ${heroismDots ? `<span class="status-bar__heroism" title="Heroism">${heroismDots}</span>` : ""}
-    `;
+    center.innerHTML = heroismDots ? `<span class="status-bar__heroism" title="Heroism">${heroismDots}</span>` : "";
     
     // Right: beat progress, current beat name, and urgency indicator
     const pageNum = narrative.beatIndex != null ? narrative.beatIndex + 1 : "?";

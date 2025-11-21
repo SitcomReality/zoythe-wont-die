@@ -1,23 +1,14 @@
 export function createRailroadEngine({ gameState, eventBus }) {
   const REFUSAL_THRESHOLD = 2;
-  const THREAT_CRITICAL = 4;
 
   function checkRefusalRails() {
-    const { narrative, world } = gameState;
+    const { narrative } = gameState;
 
     if (narrative.refusalCount >= REFUSAL_THRESHOLD) {
       return {
         type: "forced-departure",
         reason: "Repeated refusals trigger divine intervention",
         severity: Math.min(narrative.refusalCount - REFUSAL_THRESHOLD + 1, 3)
-      };
-    }
-
-    if (world.homeThreatLevel >= THREAT_CRITICAL) {
-      return {
-        type: "urgent-crisis",
-        reason: "Home threat reaches critical levels",
-        severity: 3
       };
     }
 
