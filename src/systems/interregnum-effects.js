@@ -99,7 +99,7 @@ const GENERAL_EFFECTS = [
   {
     id: "ghost-army",
     name: "Ghost Armies",
-    description: "Spectral legions march across battlefields long abandoned",
+    description: "Spectral legions march across long abandoned battlefields",
     severity: 2
   },
   {
