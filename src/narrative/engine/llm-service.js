@@ -50,6 +50,8 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     world: {
       tone: world.tone,
       tags: world.tags,
+      // Ensure the primaryMacGuffin reflects the murder weapon (if a mystery exists)
+      primaryMacGuffin: (mystery && mystery.weapon) ? mystery.weapon : (world.primaryMacGuffin || null)
     },
     mystery: mysteryContext,
     history: recentHistory,
