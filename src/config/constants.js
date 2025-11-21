@@ -57,7 +57,11 @@ export const CHOICE_CLASSIFICATIONS = {
   BETRAY_ALLY: "betrayAlly",
   DIRECT: "direct",
   CAUTIOUS: "cautious",
-  CLEVER: "clever"
+  CLEVER: "clever",
+  INVESTIGATE: "investigate",
+  INTERROGATE: "interrogate",
+  ACCUSE: "accuse",
+  ANALYZE: "analyze"
 };
 
 export const MACGUFFIN_STATUS = {

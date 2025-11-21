@@ -1,4 +1,4 @@
-import { LOOP_PHASES, MACGUFFIN_STATUS } from "../../../config/constants.js";
+import { LOOP_PHASES, CHOICE_CLASSIFICATIONS } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
 
 export function registerOrdealBeat({ beatOrchestrator, gameState }) {
@@ -7,17 +7,21 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
   const beat = {
     id,
     async enter({ gameState }) {
-      const macguffin = gameState.world.primaryMacGuffin;
-
+      const suspects = Array.from(gameState.mystery.suspects.values());
+      
       const instructions = `
-        This is "The Ordeal" at the heart of the Interregnum.
-        The protagonist confronts the MacGuffin: "${macguffin.name}" (${macguffin.description}).
-        The scene should feel climactic, surreal, and dangerous; the dying god's presence is palpable.
-        Provide 2-3 choices that represent different approaches:
-        - Bold/direct seizure.
-        - Reverent/prayerful or redemptive approach.
-        - Hesitant/reluctant or cautious response.
-        Some choices may mark the MacGuffin as acquired (world.macGuffinStatus = "primaryAcquired" or "backupAcquired").
+        This is "The Accusation" (The Ordeal).
+        The protagonist has gathered enough evidence (or run out of time).
+        They stand before the assembled spirits/suspects in the Court of Dead Gods.
+        The pressure is immense. Reality is collapsing.
+        You must identify the killer.
+        
+        The suspects are:
+        ${suspects.map(s => `- ${s.name} (${s.role})`).join("\n")}
+        
+        Provide a brief dramatic intro to the confrontation.
+        Then, strictly provide choices that are Accusations for each suspect, plus maybe one "I don't know" option.
+        Example choices: "Accuse Kael", "Accuse Mira", "Admit ignorance".
       `;
 
       const content = await generateBeatContent({
@@ -25,7 +29,11 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
         instructions,
         beatId: id
       });
-
+      
+      // Force choice IDs to match suspect IDs for easy parsing
+      // We'll trust the LLM generated suitable labels, but we might want to hardcode the IDs if we were stricter.
+      // For now, rely on mapping LLM output.
+      
       const choices = content.choices.map(c => ({
         ...c,
         id: `${id}:${c.id}`
@@ -39,23 +47,21 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
     },
 
     applyChoice(choice, { gameState }) {
-      const { player, world } = gameState;
-
-      // Ensure some macguffin status if LLM did not set one
-      if (!world.macGuffinStatus || world.macGuffinStatus === MACGUFFIN_STATUS.NONE) {
-        world.macGuffinStatus = MACGUFFIN_STATUS.PRIMARY_ACQUIRED;
+      // Determine if the player accused the correct killer
+      const killerId = gameState.mystery.killerId;
+      const text = (choice.label + " " + choice.id).toLowerCase();
+      const killer = gameState.mystery.suspects.get(killerId);
+      
+      let correct = false;
+      if (text.includes(killer.name.toLowerCase())) {
+        correct = true;
       }
 
-      // Add the appropriate MacGuffin to inventory based on status
-      if (world.macGuffinStatus === MACGUFFIN_STATUS.PRIMARY_ACQUIRED || world.macGuffinStatus === MACGUFFIN_STATUS.BOUND) {
-        if (!player.inventory.includes(world.primaryMacGuffin)) {
-          player.addToInventory(world.primaryMacGuffin);
-        }
-      } else if (world.macGuffinStatus === MACGUFFIN_STATUS.BACKUP_ACQUIRED) {
-        if (!player.inventory.includes(world.backupMacGuffin)) {
-          player.addToInventory(world.backupMacGuffin);
-        }
-      }
+      gameState.mystery.progress.accusationMade = true;
+      gameState.mystery.progress.correctKillerAccused = correct;
+
+      // Store result for the Return phase
+      gameState.narrative.flags["accusationResult"] = correct ? "correct" : "incorrect";
 
       return "heroJourney:return:roadBack";
     }

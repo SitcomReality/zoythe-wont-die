@@ -7,15 +7,15 @@ export function registerPrologueBeat({ beatOrchestrator, gameState }) {
   const beat = {
     id,
     async enter({ gameState }) {
-      const threat = gameState.world.homeThreat;
-
+      // Phase 3 Update: Dead Detective Premise
       const instructions = `
-        This is the Prologue – a scene-setting exposition page with no player choices yet.
-        Describe the world of the Interregnum: dying gods, their wars, the fallout across mortal lands.
-        Establish the immediate home threat: "${threat.name}" (${threat.description}).
-        Write evocative, atmospheric prose (100-150 words) that sets tone and stakes.
-        This is a read-only narrative beat, so provide a single "continue" option labeled naturally (e.g. "Continue.", "Press onward.", "Face the dawn.").
-        Return exactly ONE choice with id "continue", label as you see fit, and no effects.
+        This is the Prologue.
+        The protagonist has just died. The sensation is confusing, glitchy, and wrong.
+        Instead of passing on, they are stuck in a "Supernal Interregnum" - a broken afterlife where the Death God is also dead.
+        Describe the sensation of the soul unraveling but hitting a hard floor instead of dissolving.
+        The world is grey, static-filled, and terrifyingly silent.
+        Establish the central mystery immediately: "You are dead. But you are still here. And you don't remember who killed you."
+        This is a read-only narrative beat. Provide a single "continue" option labeled "Open your eyes." or "Stand up.".
       `;
 
       const content = await generateBeatContent({
@@ -28,14 +28,14 @@ export function registerPrologueBeat({ beatOrchestrator, gameState }) {
       const choices = content.choices && content.choices.length > 0
         ? [{ 
             id: `${id}:continue`,
-            label: content.choices[0].label || "Continue.",
+            label: content.choices[0].label || "Open your eyes.",
             hint: null,
             classification: [],
             effects: {}
           }]
         : [{
             id: `${id}:continue`,
-            label: "Continue.",
+            label: "Open your eyes.",
             hint: null,
             classification: [],
             effects: {}

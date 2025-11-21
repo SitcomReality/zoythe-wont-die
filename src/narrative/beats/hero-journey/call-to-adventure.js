@@ -7,26 +7,28 @@ export function registerCallToAdventureBeat({ beatOrchestrator }) {
   const beat = {
     id,
     async enter({ gameState }) {
+      const mystery = gameState.mystery;
+      const weapon = mystery ? mystery.weapon.name : "an unknown weapon";
+      const twist = mystery ? mystery.twist : "a murder";
+
       const instructions = `
-        This is the 'Call to Adventure'. 
-        The protagonist is at their home/shelter.
-        A divine sign (falling star, bleeding moon, etc) signals the beginning of the end.
-        The Call must be introduced.
-        Required Choice Types: 
-        - Accept/Advance (starts quest)
-        - Refuse (hesitation)
+        This is the 'Call to Adventure', which is now 'The Discovery of the Corpse'.
+        The protagonist stands over their own mortal body (or what remains of it).
+        They see the glint of the murder weapon: ${weapon}.
+        The reality around them is glitching.
+        The Call is the realization: The system of death is broken because YOU were murdered illegally (or the Death God was).
+        You must solve your own murder to fix the loop or escape it.
+        Required Choice Types:
+        - Investigate the body/weapon (Accept Quest / Investigate)
+        - Deny the reality / Try to flee (Refuse)
       `;
 
-      // Generate content via LLM
       const content = await generateBeatContent({ 
         gameState, 
         instructions, 
         beatId: id 
       });
 
-      // Post-process choices to match ID schema if needed, 
-      // but we'll trust the Orchestrator's generic handling mostly.
-      // We just ensure IDs are unique enough.
       const choices = content.choices.map(c => ({
         ...c,
         id: `${id}:${c.id}`
@@ -40,8 +42,7 @@ export function registerCallToAdventureBeat({ beatOrchestrator }) {
     },
 
     applyChoice(choice, { gameState }) {
-      // Regardless of choice (Accept/Refuse), the mentor appears next,
-      // though refusals might trigger rails later.
+      // Transition to meeting the "Mentor" (who might be a suspect)
       return "heroJourney:intro:meetingMentor";
     }
   };

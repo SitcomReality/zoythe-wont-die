@@ -79,11 +79,18 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
 
   function applyChoice(choice) {
     const currentBeat = registry.get(gameState.narrative.lastBeatId);
-    if (!currentBeat || !currentBeat.applyChoice) return;
-
+    // Allow applying choices even if beat logic is simple (fallback)
+    
     // Classify the choice
     const classifications = classifyChoice(choice);
     
+    // Handle free-text "user-input" specifically if needed
+    if (choice.id === "user-input") {
+        // Inject the user's text into classification for context
+        // (ChoiceClassifier handles text parsing)
+        console.log(`[Orchestrator] Processing user input: "${choice.label}" -> ${classifications.join(", ")}`);
+    }
+
     // Get combined delta from explicit effects and inferred effects
     const delta = getChoiceDelta(choice, classifications);
     

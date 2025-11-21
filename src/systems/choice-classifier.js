@@ -45,6 +45,20 @@ export function classifyChoice(choice) {
     classifications.add(CHOICE_CLASSIFICATIONS.BETRAY_ALLY);
   }
 
+  // Investigation Logic
+  if (text.includes("examine") || text.includes("look at") || text.includes("search") || text.includes("investigate") || text.includes("check")) {
+    classifications.add(CHOICE_CLASSIFICATIONS.INVESTIGATE);
+    classifications.add(CHOICE_CLASSIFICATIONS.ANALYZE);
+  }
+
+  if (text.includes("ask") || text.includes("question") || text.includes("talk") || text.includes("interrogate") || text.includes("speak")) {
+    classifications.add(CHOICE_CLASSIFICATIONS.INTERROGATE);
+  }
+
+  if (text.includes("accuse") || text.includes("blame") || text.includes("charge")) {
+    classifications.add(CHOICE_CLASSIFICATIONS.ACCUSE);
+  }
+
   return Array.from(classifications);
 }
 
@@ -80,6 +94,17 @@ export function getChoiceDelta(choice, classifications) {
         break;
       case CHOICE_CLASSIFICATIONS.FIGHT:
         delta.player.ambition = (delta.player.ambition || 0) + 1;
+        break;
+      case CHOICE_CLASSIFICATIONS.INVESTIGATE:
+      case CHOICE_CLASSIFICATIONS.ANALYZE:
+        delta.player.resolve = (delta.player.resolve || 0) + 1;
+        break;
+      case CHOICE_CLASSIFICATIONS.INTERROGATE:
+        delta.player.doubt = (delta.player.doubt || 0) + 1; // Questioning leads to doubt
+        break;
+      case CHOICE_CLASSIFICATIONS.ACCUSE:
+        delta.player.ambition = (delta.player.ambition || 0) + 2;
+        delta.player.heroism = (delta.player.heroism || 0) + 1;
         break;
     }
   }
