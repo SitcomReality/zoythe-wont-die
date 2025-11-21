@@ -1,7 +1,7 @@
 const roadOfTestsPrompt = `
-This is an Investigation Scene (iteration ${iteration}).
+This is an Investigation Scene (iteration \${iteration}).
 The protagonist is exploring the glitching world/memories.
-Hidden here is a clue: "${clue.label}" - ${clue.description}.
+Hidden here is a clue: "\${clue.label}" - \${clue.description}.
 Describe the location (e.g., a memory fragment, a ruined temple, a digital void).
 The player must choose how to interact to find the truth.
 
