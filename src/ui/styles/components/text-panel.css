@@ -30,6 +30,7 @@
   overflow-y: auto;
   padding-right: 8px;
   transition: opacity 0.3s ease;
+  white-space: pre-line;
 }
 
 .text-panel__title--hidden,
