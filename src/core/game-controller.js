@@ -3,12 +3,10 @@ import { hasSavedGame, loadGame, saveGame, clearSave } from "./persistence.js";
 import { createRng } from "./rng.js";
 import { createGameState, hydrateGameState } from "../state/game-state.js";
 import { initBeatOrchestrator } from "../narrative/engine/beat-orchestrator.js";
-import { generateMacGuffin } from "../systems/macguffin-generator.js";
 import { createMystery } from "../systems/mystery-generator.js"; 
 import { generateNPCRoster } from "../systems/npc-manager.js";
 import { createRailroadEngine } from "../systems/railroad-engine.js";
 import { registerCoreBeats } from "../narrative/beats/beat-registry.js";
-import { initDesignDocHooks } from "../integration/design-doc-hooks.js";
 import { NPC_ROLES } from "../config/constants.js";
 
 export function createGameController({ eventBus, ui }) {
@@ -39,11 +37,10 @@ export function createGameController({ eventBus, ui }) {
     
     gameState = createGameState({ rng, config });
     
-    // Legacy setup
-    const macGuffinData = generateMacGuffin({ rng });
-    gameState.world.homeThreat = macGuffinData.threat;
-    gameState.world.primaryMacGuffin = macGuffinData.primary;
-    gameState.world.backupMacGuffin = macGuffinData.backup;
+    // Legacy setup (removed macguffin generator). Keep homeThreat empty unless other systems set it.
+    // gameState.world.homeThreat = macGuffinData.threat;
+    // gameState.world.primaryMacGuffin = macGuffinData.primary;
+    // gameState.world.backupMacGuffin = macGuffinData.backup;
     
     // Mystery setup
     gameState.mystery = createMystery({ rng });
@@ -91,7 +88,7 @@ export function createGameController({ eventBus, ui }) {
     gameState.railroadEngine = railroadEngine;
     
     registerCoreBeats({ beatOrchestrator, eventBus, gameState, rng: gameState.rng });
-    initDesignDocHooks({ gameState, beatOrchestrator, eventBus });
+    // Design doc hooks removed — no runtime initialization required.
     
     ui.showGame(gameState);
     
