@@ -47,6 +47,7 @@
   gap: 16px;
   min-width: 0;
   position: relative;
+  overflow-y: scroll;
 }
 
 /* Main content structure */
