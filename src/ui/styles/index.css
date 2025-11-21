@@ -7,6 +7,8 @@
 @import "./components/history-panel.css";
 @import "./components/mobile-footer.css";
 @import "./components/menu.css";
+@import "./components/dossier-panel.css";
+@import "./components/action-input.css";
 
 .layout-game-container {
   flex: 1;

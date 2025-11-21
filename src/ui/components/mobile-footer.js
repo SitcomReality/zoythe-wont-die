@@ -1,4 +1,4 @@
-export function createMobileFooter({ root, onHistoryToggle }) {
+export function createMobileFooter({ root, onHistoryToggle, onDossierToggle }) {
   root.innerHTML = "";
 
   const footer = document.createElement("div");
@@ -6,14 +6,22 @@ export function createMobileFooter({ root, onHistoryToggle }) {
 
   const historyBtn = document.createElement("button");
   historyBtn.className = "mobile-footer__btn";
-  historyBtn.setAttribute("aria-label", "Toggle story history");
   historyBtn.innerHTML = "📖 History";
+  
+  const dossierBtn = document.createElement("button");
+  dossierBtn.className = "mobile-footer__btn";
+  dossierBtn.innerHTML = "📁 Dossier";
 
   historyBtn.addEventListener("click", () => {
     onHistoryToggle();
   });
 
+  dossierBtn.addEventListener("click", () => {
+    onDossierToggle();
+  });
+
   footer.appendChild(historyBtn);
+  footer.appendChild(dossierBtn);
   root.appendChild(footer);
 
   return { footer };

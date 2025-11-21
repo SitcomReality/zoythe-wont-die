@@ -9,7 +9,7 @@
 
 .app-frame {
   width: 100%;
-  max-width: 920px;
+  max-width: 1200px;
   max-height: 100%;
   border-radius: var(--radius-lg);
   background: rgba(6, 7, 8, 0.92);
@@ -18,14 +18,22 @@
     0 18px 40px rgba(0, 0, 0, 0.65),
     0 0 0 1px rgba(255, 255, 255, 0.02);
   overflow: hidden;
-  overflow-y: scroll;
   display: flex;
   flex-direction: row;
 }
 
+/* Column Layout */
 .app-history {
-  width: 280px;
+  width: 260px;
   border-right: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-dossier {
+  width: 280px;
+  border-left: 1px solid var(--border-subtle);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -38,8 +46,10 @@
   padding: 20px;
   gap: 16px;
   min-width: 0;
+  position: relative;
 }
 
+/* Main content structure */
 .app-status {
   height: 40px;
   flex-shrink: 0;
@@ -50,35 +60,64 @@
   min-height: 0;
 }
 
-.app-choices {
+.app-input-area {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* Mobile responsive */
-@media (max-width: 768px) {
+.app-choices {
+  width: 100%;
+}
+
+.app-input {
+  width: 100%;
+}
+
+/* Mobile States */
+.app-history--mobile-hidden,
+.app-dossier--mobile-hidden {
+  display: none !important; /* Override flex display */
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
   .app-frame {
     max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-frame {
     flex-direction: column;
     max-height: calc(100% - 56px);
+    border-radius: 0;
+    border: none;
   }
-
-  .app-history {
+  
+  .app-history, .app-dossier {
     width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border-subtle);
-    max-height: 40%;
-    display: flex;
-    flex-direction: column;
+    border: none;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    background: var(--bg);
   }
-
-  .app-history--mobile-hidden {
-    display: none;
+  
+  .app-history {
+    border-right: none;
+  }
+  
+  .app-dossier {
+    border-left: none;
   }
 
   .app-main {
     padding: 16px;
     gap: 12px;
-    padding-bottom: 70px;
   }
 
   .app-status {
@@ -86,16 +125,10 @@
   }
 }
 
-/* Smaller mobile */
 @media (max-width: 480px) {
   .app-main {
-    padding: 14px;
+    padding: 12px;
     gap: 10px;
-    padding-bottom: 66px;
-  }
-
-  .app-status {
-    height: 32px;
   }
 }
 

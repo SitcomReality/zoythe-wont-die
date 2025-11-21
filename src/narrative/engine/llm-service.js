@@ -1,13 +1,37 @@
 import { CHOICE_CLASSIFICATIONS } from "../../config/constants.js";
 
 export async function generateBeatContent({ gameState, instructions, beatId }) {
-  const { player, world, narrative } = gameState;
+  const { player, world, narrative, mystery } = gameState;
 
   // Prepare context for the AI
   const recentHistory = narrative.history.slice(-3).map(h => ({
     title: h.title,
     summary: h.body ? h.body.substring(0, 150) + "..." : ""
   }));
+
+  // Prepare mystery context (if active)
+  let mysteryContext = null;
+  if (mystery) {
+    // Filter for known info only
+    const knownSuspects = Array.from(mystery.suspects.values()).map(s => ({
+      name: s.name,
+      role: s.role,
+      // Only share motive/alibi if explicitly known (future feature), 
+      // for now we share basic identity to allow conversation.
+    }));
+    
+    const knownClues = Array.from(mystery.clues.discovered).map(id => {
+        const clue = mystery.clues.all.get(id);
+        return clue ? `${clue.label}: ${clue.description}` : null;
+    }).filter(Boolean);
+
+    mysteryContext = {
+      victim: mystery.victim.name,
+      knownSuspects,
+      knownClues,
+      progress: mystery.progress
+    };
+  }
 
   const context = {
     player: {
@@ -25,57 +49,45 @@ export async function generateBeatContent({ gameState, instructions, beatId }) {
       threat: world.homeThreat?.name,
       macGuffin: world.primaryMacGuffin?.name,
       tags: world.tags,
-      macGuffinStatus: world.macGuffinStatus,
-      homeThreatLevel: world.homeThreatLevel,
-      omensSeen: world.omensSeen
     },
+    mystery: mysteryContext,
     history: recentHistory
   };
 
   const systemPrompt = `
-You are the AI Dungeon Master for "Zoythe", a text-based RPG set in a dying world (The Interregnum).
-Your goal is to generate the next story beat based on the provided context and instructions.
+You are the AI Dungeon Master for "Zoythe", a murder-mystery RPG set in a glitching afterlife.
+Goal: Generate the next story beat.
+Context: The protagonist is a murder victim investigating their own death while the world ends.
 
-Tone: ${world.tone} (e.g. Mythic, Nihilistic, Hopeful).
-Writing Style: Evocative, concise (max 150 words), second-person ("You..."). Do not use markdown formatting in the JSON strings.
+Tone: ${world.tone}.
+Writing Style: Evocative, concise (max 150 words), second-person ("You...").
+Format: JSON only.
 
-Return ONLY valid JSON matching this schema:
+Valid JSON Schema:
 {
-  "title": "string (short, thematic)",
-  "body": "string (the narrative text)",
+  "title": "string",
+  "body": "string",
   "choices": [
     {
-      "id": "string (short keyword, e.g. 'accept', 'fight')",
-      "label": "string (action text)",
-      "hint": "string (short tone hint, e.g. 'Bold', 'Risk')",
-      "classification": ["string (must be from valid list)"],
-      "effects": { 
-        "player": { "stat_name": integer },
-        "world": { 
-          "property_name": value
-        }
-      }
+      "id": "string",
+      "label": "string",
+      "hint": "string (optional)",
+      "classification": ["string"],
+      "effects": { "player": {}, "world": {} }
     }
   ]
 }
 
 Valid Classifications: ${Object.values(CHOICE_CLASSIFICATIONS).join(", ")}.
-Valid Player Stats: resolve, compassion, ambition, devotion, doubt, heroism.
-World properties you MAY change in effects.world:
-- omensSeen (integer, typically +1)
-- homeThreatLevel (integer, positive or negative deltas)
-- macGuffinStatus (string enum: "none", "primaryAcquired", "backupAcquired", "destroyed", "missing", "bound")
-- tags (array of strings to push into world.tags, e.g. ["divine-corruption"]).
-
-Generate 2-3 distinct choices with meaningful consequences (e.g. Bold vs Cautious vs Merciful).
+Include 2-3 choices. If the player input a specific action, try to reflect its consequences in the narrative or choices.
 `;
 
   const userPrompt = `
-Current Context: ${JSON.stringify(context, null, 2)}
+Current State: ${JSON.stringify(context, null, 2)}
 
 Beat Instructions: ${instructions}
 
-Generate the content for beat ID: ${beatId}.
+Generate content for beat ID: ${beatId}.
 `;
 
   try {

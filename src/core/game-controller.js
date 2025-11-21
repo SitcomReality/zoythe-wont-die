@@ -4,7 +4,7 @@ import { createRng } from "./rng.js";
 import { createGameState, hydrateGameState } from "../state/game-state.js";
 import { initBeatOrchestrator } from "../narrative/engine/beat-orchestrator.js";
 import { generateMacGuffin } from "../systems/macguffin-generator.js";
-import { createMystery } from "../systems/mystery-generator.js"; // New Import
+import { createMystery } from "../systems/mystery-generator.js"; 
 import { generateNPCRoster } from "../systems/npc-manager.js";
 import { createRailroadEngine } from "../systems/railroad-engine.js";
 import { registerCoreBeats } from "../narrative/beats/beat-registry.js";
@@ -19,9 +19,6 @@ export function createGameController({ eventBus, ui }) {
 
   function init() {
     showMainMenu();
-    
-    // Hook up generic UI events that don't depend on specific game state instances
-    // (or delegate them dynamically)
   }
   
   function showMainMenu() {
@@ -32,7 +29,7 @@ export function createGameController({ eventBus, ui }) {
       hasSave: hasSavedGame(),
       onContinue: continueGame,
       onNewGame: () => ui.showNewGame({ onStart: startNewGame, onCancel: showMainMenu }),
-      onHistory: () => alert("Archives of previous timelines are currently sealed by the Interregnum.") // Placeholder
+      onHistory: () => alert("Archives are sealed.") 
     });
   }
 
@@ -42,13 +39,13 @@ export function createGameController({ eventBus, ui }) {
     
     gameState = createGameState({ rng, config });
     
-    // Procedural Gen Setup (Legacy MacGuffin)
+    // Legacy setup
     const macGuffinData = generateMacGuffin({ rng });
     gameState.world.homeThreat = macGuffinData.threat;
     gameState.world.primaryMacGuffin = macGuffinData.primary;
     gameState.world.backupMacGuffin = macGuffinData.backup;
     
-    // Procedural Gen Setup (New Mystery)
+    // Mystery setup
     gameState.mystery = createMystery({ rng });
     
     const npcRoster = generateNPCRoster({ 
@@ -68,26 +65,27 @@ export function createGameController({ eventBus, ui }) {
       return;
     }
     
-    // Re-init RNG from saved state if we saved seed, or generic
-    // Ideally we save seed in gameState.config or similar
     const seed = data.config?.seed || Date.now(); 
     const rng = createRng(seed);
     
     gameState = hydrateGameState(data, rng);
     launchGame();
     
-    // Resume UI
-    ui.renderText({ 
-      title: gameState.narrative.history[gameState.narrative.history.length-1]?.title || "Resuming...", 
-      body: gameState.narrative.history[gameState.narrative.history.length-1]?.body || "..."
-    });
+    // Restore UI state
+    if (gameState.narrative.history.length > 0) {
+        const lastEntry = gameState.narrative.history[gameState.narrative.history.length-1];
+        ui.renderText({ title: lastEntry.title, body: lastEntry.body });
+    } else {
+        ui.renderText({ title: "...", body: "..." });
+    }
+
     ui.renderChoices({ choices: gameState.narrative.pendingChoices });
     ui.renderHistory({ history: gameState.narrative.history });
     ui.renderStatus({});
+    if (gameState.mystery) ui.renderDossier({ mystery: gameState.mystery });
   }
 
   function launchGame() {
-    // Setup Systems
     beatOrchestrator = initBeatOrchestrator({ eventBus, gameState, rng: gameState.rng });
     const railroadEngine = createRailroadEngine({ gameState, eventBus });
     gameState.railroadEngine = railroadEngine;
@@ -95,49 +93,57 @@ export function createGameController({ eventBus, ui }) {
     registerCoreBeats({ beatOrchestrator, eventBus, gameState, rng: gameState.rng });
     initDesignDocHooks({ gameState, beatOrchestrator, eventBus });
     
-    // Wire up events specific to this session
-    // Note: We need to be careful not to duplicate listeners if we restart
-    // For simplicity, eventBus clears listeners or we manage unique handlers.
-    // In this simple bus implementation, we might need to clear old listeners?
-    // Current eventBus doesn't support clearAll. 
-    // We'll assume simple handlers for now.
-    
     ui.showGame(gameState);
     
-    // Start Loop
     loop = createGameLoop({
       tick: (ts) => { /* time based updates */ }
     });
     loop.start();
     
-    // Auto-save on beat completion/choice
     autoSaveInterval = setInterval(() => {
       if(gameState) saveGame(gameState);
     }, 5000);
   }
 
-  // Global Event Listeners
+  // Event Listeners
   eventBus.on("ui:choice:selected", choice => {
     if (!gameState || !beatOrchestrator) return;
     beatOrchestrator.applyChoice(choice);
-    saveGame(gameState); // Save on turn
+    saveGame(gameState);
   });
   
-  // Regenerate current beat: increment RNG seed and re-run the last beat
+  // Handle free-text input
+  eventBus.on("ui:input:submit", text => {
+    if (!gameState || !beatOrchestrator) return;
+    
+    // For Phase 2, we map the input to a generic "direct" choice
+    // Phase 3 will add intent classification
+    const pseudoChoice = {
+      id: "user-input",
+      label: text,
+      classification: ["direct"], // Fallback
+      effects: {}
+    };
+    
+    // We pass this to the orchestrator. 
+    // Note: Current orchestrator.applyChoice expects a choice object that might trigger next beat.
+    // We might need to handle this carefully if the current beat doesn't know how to handle generic inputs.
+    // For now, we rely on the beat's next step logic or railroad.
+    
+    // To make this work without breaking logic, we treat it as a valid choice.
+    // The orchestrator will log it in history.
+    beatOrchestrator.applyChoice(pseudoChoice);
+    saveGame(gameState);
+  });
+
   eventBus.on("ui:regenerate:beat", () => {
     if (!gameState || !beatOrchestrator) return;
     try {
-      // If we have a numeric seed on the RNG, increment it; otherwise create a new RNG seeded by time
       const currentSeed = Number(gameState.rng?.seed) || Date.now();
       const newSeed = Number(currentSeed) + 1;
       gameState.rng = createRng(newSeed);
-
-      // Re-run the last beat id (will trigger loading -> generateBeatContent -> update UI)
       const lastBeat = gameState.narrative.lastBeatId;
-      if (lastBeat) {
-        // Use orchestrator to run the beat again
-        beatOrchestrator.runBeat(lastBeat);
-      }
+      if (lastBeat) beatOrchestrator.runBeat(lastBeat);
     } catch (err) {
       console.error("Regenerate failed:", err);
     }
@@ -146,6 +152,8 @@ export function createGameController({ eventBus, ui }) {
   eventBus.on("narrative:update", payload => {
     ui.renderText(payload);
     ui.renderHistory({ history: gameState.narrative.history });
+    // Also update dossier in case beat revealed clues
+    if (gameState.mystery) ui.renderDossier({ mystery: gameState.mystery });
   });
   
   eventBus.on("choices:update", payload => ui.renderChoices(payload));
