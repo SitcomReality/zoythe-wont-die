@@ -45,6 +45,42 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
       previousChoice
     };
 
+    // --- NEW: expose the prompt context for debugging / dev UI ---
+    try {
+      // We do not expose the whole gameState object (methods etc.) — serialize the useful parts
+      const serializable = {
+        player: {
+          archetype: gameState.player.archetype,
+          heroism: gameState.player.heroism,
+          stats: gameState.player.stats,
+        },
+        world: {
+          tone: gameState.world.tone,
+          tags: gameState.world.tags
+        },
+        narrative: {
+          beatRepeatCount: gameState.narrative.beatRepeatCount,
+          urgencyLevel: gameState.narrative.urgencyLevel,
+          flags: gameState.narrative.flags
+        },
+        mystery: gameState.mystery ? {
+          twist: gameState.mystery.twist,
+          weapon: gameState.mystery.weapon,
+          killerId: gameState.mystery.killerId,
+          progress: gameState.mystery.progress
+        } : null,
+        terminology,
+        previousPage: previousPage ? { title: previousPage.title, body: previousPage.body } : null,
+        previousChoice: previousChoice ? { label: previousChoice.label, id: previousChoice.id } : null,
+        beatId: id
+      };
+
+      eventBus.emit("prompt:context", serializable);
+    } catch (err) {
+      console.warn("[beat-orchestrator] failed to emit prompt context", err);
+    }
+    // --- END NEW ---
+    
     // Signal loading state to UI
     eventBus.emit("narrative:loading", { beatId: id });
     eventBus.emit("choices:update", { choices: [] }); // Clear choices while loading

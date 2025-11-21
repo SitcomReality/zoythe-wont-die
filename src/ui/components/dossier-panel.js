@@ -1,6 +1,7 @@
 export function createDossierPanel({ root, eventBus }) {
   let activeTab = "suspects"; // 'suspects' or 'clues'
   let currentMysteryState = null;
+  let currentDevContext = null;
 
   // Skeleton
   root.innerHTML = "";
@@ -29,7 +30,59 @@ export function createDossierPanel({ root, eventBus }) {
   contentArea.className = "dossier-panel__content";
   container.appendChild(contentArea);
 
+  // --- Dev Area: show last prompt/context for debugging ---
+  const devArea = document.createElement("div");
+  devArea.className = "dossier-panel__dev";
+  devArea.style.borderTop = "1px solid var(--border-subtle)";
+  devArea.style.padding = "10px 12px";
+  devArea.style.fontSize = "0.75rem";
+  devArea.style.color = "var(--text-muted)";
+  devArea.style.background = "rgba(0,0,0,0.04)";
+  devArea.style.maxHeight = "160px";
+  devArea.style.overflow = "auto";
+
+  const devHeader = document.createElement("div");
+  devHeader.style.display = "flex";
+  devHeader.style.justifyContent = "space-between";
+  devHeader.style.alignItems = "center";
+  devHeader.style.marginBottom = "6px";
+
+  const devTitle = document.createElement("div");
+  devTitle.textContent = "Dev: Prompt Context";
+  devTitle.style.color = "var(--accent)";
+  devTitle.style.fontSize = "0.75rem";
+  devTitle.style.fontWeight = "600";
+
+  const devToggle = document.createElement("button");
+  devToggle.textContent = "Toggle";
+  devToggle.style.fontSize = "0.7rem";
+  devToggle.style.border = "none";
+  devToggle.style.background = "transparent";
+  devToggle.style.color = "var(--text-muted)";
+  devToggle.style.cursor = "pointer";
+
+  devHeader.appendChild(devTitle);
+  devHeader.appendChild(devToggle);
+
+  const devContent = document.createElement("pre");
+  devContent.style.whiteSpace = "pre-wrap";
+  devContent.style.margin = "0";
+  devContent.style.fontFamily = "monospace";
+  devContent.textContent = "No context yet.";
+
+  devArea.appendChild(devHeader);
+  devArea.appendChild(devContent);
+  container.appendChild(devArea);
+  // --- end dev area ---
+
   root.appendChild(container);
+
+  // toggle behavior
+  let devVisible = true;
+  devToggle.addEventListener("click", () => {
+    devVisible = !devVisible;
+    devContent.style.display = devVisible ? "block" : "none";
+  });
 
   function createTab(label, key) {
     const btn = document.createElement("button");
@@ -165,6 +218,18 @@ export function createDossierPanel({ root, eventBus }) {
   function update({ mystery }) {
     currentMysteryState = mystery;
     renderContent();
+  }
+
+  // NEW: update dev context when event emitted
+  if (eventBus) {
+    eventBus.on("prompt:context", (ctx) => {
+      currentDevContext = ctx;
+      try {
+        devContent.textContent = JSON.stringify(ctx, null, 2);
+      } catch (e) {
+        devContent.textContent = String(ctx);
+      }
+    });
   }
 
   return { update };
