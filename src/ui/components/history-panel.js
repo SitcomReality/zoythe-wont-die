@@ -59,22 +59,22 @@ export function createHistoryPanel({ root }) {
       item.appendChild(detail);
       list.appendChild(item);
 
-      // Insert the choice the player submitted to reach the next page (if any)
-      // We expect choiceHistory entries to include .beatIndex which corresponds to the beat index at time of choice.
-      // The choice that led to this page will have been recorded at the previous beatIndex.
-      // For page at index `idx`, the triggering choice's beatIndex equals `idx`
-      const submitted = choiceHistory
-        .slice() // copy
-        .reverse()
-        .find(c => c.beatIndex === idx);
-      
-      const choiceContainer = document.createElement("div");
-      choiceContainer.className = "history-panel__choice-row";
+      // Find the choice that was submitted after this page's timestamp and before the next page's timestamp (if any)
+      const nextEntry = history[idx + 1];
+      const submitted = choiceHistory.find(c => {
+        const ct = c.timestamp || 0;
+        const afterPage = ct > (entry.timestamp || 0);
+        const beforeNext = nextEntry ? ct <= (nextEntry.timestamp || Infinity) : true;
+        return afterPage && beforeNext;
+      });
 
+      // Only create and append a choice-row if a submitted choice exists for this page
       if (submitted && submitted.choice) {
+        const choiceContainer = document.createElement("div");
+        choiceContainer.className = "history-panel__choice-row";
+
         const choiceBtn = document.createElement("button");
         choiceBtn.className = "history-panel__choice-summary";
-        // Show single-line trimmed preview; full text in expanded area
         const choiceLabel = typeof submitted.choice.label === "string" ? submitted.choice.label : (submitted.choice || {}).label || "";
         choiceBtn.textContent = choiceLabel.length > 80 ? choiceLabel.substring(0, 77) + "..." : choiceLabel;
 
@@ -91,15 +91,9 @@ export function createHistoryPanel({ root }) {
 
         choiceContainer.appendChild(choiceBtn);
         choiceContainer.appendChild(full);
-      } else {
-        // If no choice recorded, show a muted placeholder for continuity
-        const placeholder = document.createElement("div");
-        placeholder.className = "history-panel__choice-placeholder";
-        placeholder.textContent = "—";
-        choiceContainer.appendChild(placeholder);
+        list.appendChild(choiceContainer);
       }
-
-      list.appendChild(choiceContainer);
+      // If no submitted choice for this page, do not render a placeholder row
     }
   }
 
