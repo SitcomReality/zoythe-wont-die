@@ -1,6 +1,7 @@
 import { LOOP_PHASES, NPC_ROLES } from "../../../config/constants.js";
 import { getNPCsByRole } from "../../../systems/npc-manager.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
+import meetingMentorPrompt from "../../prompts/hero/meetingMentor.js";
 
 export function registerMeetingMentorBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:intro:meetingMentor";
@@ -19,13 +20,11 @@ export function registerMeetingMentorBeat({ beatOrchestrator, gameState }) {
       const mentorName = mentor ? mentor.name : "a stranger";
       const mentorDesc = mentor ? mentor.descriptor : "mysterious figure";
 
-      const instructions = `
-        This is 'Meeting the Mentor'.
-        The protagonist encounters ${mentorName} (${mentorDesc}).
-        The Mentor explains the MacGuffin (${gameState.world.primaryMacGuffin.name}) is the only hope.
-        The Mentor warns of the cost.
-        Choices should include accepting guidance or questioning it.
-      `;
+      // Insert dynamic values into prompt
+      const instructions = meetingMentorPrompt
+        .replace(/\${mentorName}/g, mentorName)
+        .replace(/\${mentorDesc}/g, mentorDesc)
+        .replace(/\${macGuffinName}/g, gameState.world.primaryMacGuffin?.name || "MacGuffin");
 
       const content = await generateBeatContent({ 
         gameState, 

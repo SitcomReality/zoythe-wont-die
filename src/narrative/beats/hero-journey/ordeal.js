@@ -1,5 +1,6 @@
 import { LOOP_PHASES, CHOICE_CLASSIFICATIONS } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
+import ordealPrompt from "../../prompts/hero/ordeal.js";
 
 export function registerOrdealBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:ordeal:heartOfInterregnum";
@@ -8,21 +9,9 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
     id,
     async enter({ gameState }) {
       const suspects = Array.from(gameState.mystery.suspects.values());
+      const suspectList = suspects.map(s => `- ${s.name} (${s.role})`).join("\n");
       
-      const instructions = `
-        This is "The Accusation" (The Ordeal).
-        The protagonist has gathered enough evidence (or run out of time).
-        They stand before the assembled spirits/suspects in the Court of Dead Gods.
-        The pressure is immense. Reality is collapsing.
-        You must identify the killer.
-        
-        The suspects are:
-        ${suspects.map(s => `- ${s.name} (${s.role})`).join("\n")}
-        
-        Provide a brief dramatic intro to the confrontation.
-        Then, strictly provide choices that are Accusations for each suspect, plus maybe one "I don't know" option.
-        Example choices: "Accuse Kael", "Accuse Mira", "Admit ignorance".
-      `;
+      const instructions = ordealPrompt.replace(/\${suspectList}/g, suspectList);
 
       const content = await generateBeatContent({
         gameState,

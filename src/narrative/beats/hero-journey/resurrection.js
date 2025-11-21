@@ -2,6 +2,7 @@ import { LOOP_PHASES } from "../../../config/constants.js";
 import { evaluateArchetype } from "../../../systems/protagonist-archetype.js";
 import { updateWorldTone } from "../../../systems/tone-system.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
+import resurrectionPrompt from "../../prompts/hero/resurrection.js";
 
 export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:return:resurrection";
@@ -11,15 +12,7 @@ export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
     async enter({ gameState }) {
       const threat = gameState.world.homeThreat;
 
-      const instructions = `
-        This is "The Resurrection" – the pivotal identity-defining choice near the end.
-        The protagonist stands at the threshold of home, facing the threat "${threat.name}".
-        Their journey, relationships, and the MacGuffin should echo through this moment.
-        Provide 2-3 choices that can tilt the protagonist toward:
-        - Sacrificial/redemptive path.
-        - Triumphant/epic victory.
-        - Survival-focused/reluctant path or other nuanced outcomes.
-      `;
+      const instructions = resurrectionPrompt.replace(/\${threat.name}/g, threat.name);
 
       const content = await generateBeatContent({
         gameState,

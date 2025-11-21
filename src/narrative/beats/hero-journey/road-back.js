@@ -1,5 +1,6 @@
 import { LOOP_PHASES } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
+import roadBackPrompt from "../../prompts/hero/roadBack.js";
 
 export function registerRoadBackBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:return:roadBack";
@@ -11,17 +12,11 @@ export function registerRoadBackBeat({ beatOrchestrator, gameState }) {
       const hasPrimary = gameState.world.macGuffinStatus === "primaryAcquired";
       const macguffin = hasPrimary ? gameState.world.primaryMacGuffin : gameState.world.backupMacGuffin;
 
-      const instructions = `
-        This is "The Road Back".
-        The protagonist turns toward home, carrying the MacGuffin: "${macguffin.name}" (${macguffin.description}).
-        Binding effect: "${macguffin.bindingEffect}".
-        The Interregnum remains hostile, and some dying god or force offers corrupting power or temptation along the way.
-        Home threat is "${threat.name}".
-        Provide 2-3 choices that roughly correspond to:
-        - Refusing corruption and holding to purpose.
-        - Accepting or partially accepting power (possibly adding "divine-corruption" to world.tags).
-        - Bargaining or pragmatic compromise.
-      `;
+      const instructions = roadBackPrompt
+        .replace(/\${macguffin.name}/g, macguffin.name)
+        .replace(/\${macguffin.description}/g, macguffin.description)
+        .replace(/\${macguffin.bindingEffect}/g, macguffin.bindingEffect)
+        .replace(/\${threat.name}/g, threat.name);
 
       const content = await generateBeatContent({
         gameState,

@@ -1,5 +1,6 @@
 import { LOOP_PHASES, CHOICE_CLASSIFICATIONS } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
+import roadOfTestsPrompt from "../../prompts/hero/roadOfTests.js";
 
 export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
   const firstTrialId = "heroJourney:tests:firstTrial";
@@ -27,29 +28,10 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
       const isRepeat = beatRepeatCount > 0;
       
       if (clue) {
-        instructions = `
-          This is an Investigation Scene (iteration ${beatRepeatCount + 1}).
-          The protagonist is exploring the glitching world/memories.
-          Hidden here is a clue: "${clue.label}" - ${clue.description}.
-          Describe the location (e.g., a memory fragment, a ruined temple, a digital void).
-          The player must choose how to interact to find the truth.
-        `;
-        
-        if (isRepeat) {
-          instructions += `
-          
-          NOTE: The player is revisiting this location. The environment has shifted or deteriorated slightly.
-          Perhaps they notice new details, or the pressure to move on is increasing.
-          If this is iteration 3+, the world should start insisting they leave or accept what they've found.
-          `;
-        }
-        
-        instructions += `
-          Provide 2-3 choices:
-          - Investigate closely (Risk/Reward) -> Will reveal clue.
-          - Ask a nearby spirit/NPC (Social) -> Might reveal clue.
-          - Ignore it/Focus on survival (Caution) -> Misses clue.
-        `;
+        instructions = roadOfTestsPrompt
+          .replace(/\${clue.label}/g, clue.label)
+          .replace(/\${clue.description}/g, clue.description)
+          .replace(/\${iteration}/g, String(beatRepeatCount + 1));
         
         gameState.narrative.pendingClueId = clue.id;
       } else {

@@ -1,6 +1,7 @@
 import { LOOP_PHASES } from "../../../config/constants.js";
 import { resolveEnding } from "../../../systems/ending-resolver.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
+import returnWithElixirPrompt from "../../prompts/hero/returnWithElixir.js";
 
 export function registerReturnWithElixirBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:epilogue:returnWithElixir";
@@ -11,15 +12,9 @@ export function registerReturnWithElixirBeat({ beatOrchestrator, gameState }) {
       const endingText = resolveEnding({ gameState });
       const threat = gameState.world.homeThreat;
 
-      const instructions = `
-        This is the Epilogue: "Return with the Elixir".
-        The home threat was "${threat.name}".
-        A precomputed ending summary from the game logic is:
-        "${endingText}"
-        Use this summary as a guiding spine, but you may elaborate and color it with tone, relationships, and prior choices.
-        Focus on resolution and reflection rather than new action.
-        Provide 1-2 simple choices about how the protagonist frames or begins their next chapter (e.g., begin again, retire, teach others).
-      `;
+      const instructions = returnWithElixirPrompt
+        .replace(/\${threat.name}/g, threat.name)
+        .replace(/\${endingText}/g, endingText);
 
       const content = await generateBeatContent({
         gameState,
