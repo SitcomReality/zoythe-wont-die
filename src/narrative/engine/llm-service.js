@@ -2,7 +2,7 @@ import { CHOICE_CLASSIFICATIONS } from "../../config/constants.js";
 import { generateTerminologyContext, substituteTerminology } from "../../systems/terminology-thesaurus.js";
 import buildSystemPrompt from "../../prompts/systemPrompt.js";
 
-export async function generateBeatContent({ gameState, instructions, beatId }) {
+export async function generateBeatContent({ gameState, instructions, beatId, previousPage = null, previousChoice = null }) {
   const { player, world, narrative, mystery, rng } = gameState;
 
   // Generate randomized terminology for this beat
@@ -54,7 +54,18 @@ export async function generateBeatContent({ gameState, instructions, beatId }) {
       tags: world.tags,
     },
     mystery: mysteryContext,
-    history: recentHistory
+    history: recentHistory,
+    previousPage: previousPage ? {
+      title: previousPage.title,
+      body: previousPage.body
+    } : null,
+    previousChoice: previousChoice ? {
+      label: previousChoice.label,
+      id: previousChoice.id
+    } : null,
+    urgencyLevel: narrative.urgencyLevel,
+    urgencyThreshold: narrative.urgencyThreshold,
+    beatRepeatCount: narrative.beatRepeatCount
   };
 
   // Build system prompt using external template

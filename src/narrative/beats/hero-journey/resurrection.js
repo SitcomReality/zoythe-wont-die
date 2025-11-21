@@ -9,7 +9,7 @@ export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
 
   const beat = {
     id,
-    async enter({ gameState }) {
+    async enter({ gameState, previousPage, previousChoice }) {
       const didAccuseCorrectly = gameState.narrative.flags["accusationResult"] === "correct";
 
       const instructions = resurrectionPrompt.replace(/\${accusationResult}/g, didAccuseCorrectly ? "correct" : "incorrect");
@@ -17,7 +17,9 @@ export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
       const content = await generateBeatContent({
         gameState,
         instructions,
-        beatId: id
+        beatId: id,
+        previousPage,
+        previousChoice
       });
 
       const choices = content.choices.map(c => ({
@@ -28,6 +30,7 @@ export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
       return {
         phase: LOOP_PHASES.RETURN,
         text: { title: content.title, body: content.body },
+        shouldAdvance: content.shouldAdvance,
         choices
       };
     },

@@ -7,13 +7,15 @@ export function registerPrologueBeat({ beatOrchestrator, gameState }) {
 
   const beat = {
     id,
-    async enter({ gameState, terminology }) {
+    async enter({ gameState, terminology, previousPage, previousChoice }) {
       const instructions = prologuePrompt;
 
       const content = await generateBeatContent({
         gameState,
         instructions,
-        beatId: id
+        beatId: id,
+        previousPage,
+        previousChoice
       });
 
       // Ensure exactly one continue choice
@@ -36,6 +38,7 @@ export function registerPrologueBeat({ beatOrchestrator, gameState }) {
       return {
         phase: LOOP_PHASES.INTRO,
         text: { title: content.title, body: content.body },
+        shouldAdvance: content.shouldAdvance,
         choices
       };
     },

@@ -8,7 +8,7 @@ export function registerReturnWithElixirBeat({ beatOrchestrator, gameState }) {
 
   const beat = {
     id,
-    async enter({ gameState }) {
+    async enter({ gameState, previousPage, previousChoice }) {
       const endingText = resolveEnding({ gameState });
 
       const instructions = returnWithElixirPrompt.replace(/\${endingText}/g, endingText);
@@ -16,7 +16,9 @@ export function registerReturnWithElixirBeat({ beatOrchestrator, gameState }) {
       const content = await generateBeatContent({
         gameState,
         instructions,
-        beatId: id
+        beatId: id,
+        previousPage,
+        previousChoice
       });
 
       const choices = (content.choices && content.choices.length
@@ -38,6 +40,7 @@ export function registerReturnWithElixirBeat({ beatOrchestrator, gameState }) {
       return {
         phase: LOOP_PHASES.EPILOGUE,
         text: { title: content.title, body: content.body },
+        shouldAdvance: content.shouldAdvance,
         choices
       };
     },

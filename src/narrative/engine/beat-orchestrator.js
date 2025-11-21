@@ -27,12 +27,22 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     const { generateTerminologyContext } = await import("../../systems/terminology-thesaurus.js");
     const terminology = generateTerminologyContext(rng);
     
+    // Get previous page and choice for continuity
+    const previousPage = gameState.narrative.history.length > 0 
+      ? gameState.narrative.history[gameState.narrative.history.length - 1]
+      : null;
+    const previousChoice = gameState.narrative.choiceHistory.length > 0
+      ? gameState.narrative.choiceHistory[gameState.narrative.choiceHistory.length - 1].choice
+      : null;
+    
     const context = { 
       eventBus, 
       gameState, 
       rng, 
       terminology,
-      beatRepeatCount: gameState.narrative.beatRepeatCount
+      beatRepeatCount: gameState.narrative.beatRepeatCount,
+      previousPage,
+      previousChoice
     };
 
     // Signal loading state to UI
@@ -40,11 +50,15 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     eventBus.emit("choices:update", { choices: [] }); // Clear choices while loading
 
     try {
-      const { text, choices, phase } = await beat.enter(context);
+      const result = await beat.enter(context);
+      const { text, choices, phase, shouldAdvance } = result;
 
       if (phase && phase in LOOP_PHASES) {
         gameState.narrative.phase = phase;
       }
+      
+      // Store shouldAdvance recommendation from AI
+      gameState.narrative.aiShouldAdvance = shouldAdvance !== undefined ? shouldAdvance : true;
       
       // Only increment beatIndex when actually moving to a new beat
       if (gameState.narrative.lastBeatId !== id) {
@@ -123,41 +137,46 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     // Check for refusals
     if (classifications.includes("refuseQuest")) {
       gameState.narrative.incrementRefusal();
-    } else {
-      // Non-refusal choice: still increment urgency if staying in beat
-      gameState.narrative.incrementBeatRepeatCount();
     }
     
     // Evaluate state after every choice
     evaluateState();
     
-    // Determine next beat
+    // Determine next beat based on AI recommendation and urgency
     let nextBeatId = null;
-    let shouldForceAdvance = false;
+    const aiShouldAdvance = gameState.narrative.aiShouldAdvance !== undefined 
+      ? gameState.narrative.aiShouldAdvance 
+      : true;
+    const urgencyForced = gameState.narrative.urgencyLevel >= gameState.narrative.urgencyThreshold;
 
-    // Check if urgency threshold reached
-    if (gameState.narrative.urgencyLevel >= gameState.narrative.urgencyThreshold) {
-      shouldForceAdvance = true;
-      console.log(`[Orchestrator] Urgency threshold reached (${gameState.narrative.urgencyLevel}). Forcing advancement.`);
+    // Get beat's desired next beat
+    if (currentBeat && currentBeat.applyChoice) {
+      const context = { eventBus, gameState, rng };
+      nextBeatId = currentBeat.applyChoice(choice, context);
     }
 
-    // If urgency forcing advancement or beat logic returns a nextBeat, advance
-    if (!shouldForceAdvance && currentBeat) {
-      const context = { eventBus, gameState, rng };
-      nextBeatId = currentBeat.applyChoice(choice, context);
-    } else if (shouldForceAdvance && currentBeat) {
-      // Even if beat doesn't want to advance, forced railroading applies
-      const context = { eventBus, gameState, rng };
-      nextBeatId = currentBeat.applyChoice(choice, context);
-      // If beat still doesn't return next, we need a default fallback
+    // Decision logic:
+    // 1. If urgency threshold reached, MUST advance (overrides AI and beat)
+    // 2. If AI says don't advance (shouldAdvance=false), stay in beat UNLESS urgency forces
+    // 3. If AI says advance (shouldAdvance=true), use beat's nextBeatId or stay
+
+    if (urgencyForced) {
+      // Urgency forces advancement
+      console.log(`[Orchestrator] Urgency forcing advancement (${gameState.narrative.urgencyLevel}/${gameState.narrative.urgencyThreshold})`);
+      // If beat didn't provide next, force it anyway (or keep nextBeatId if it exists)
       if (!nextBeatId) {
-        console.warn(`[Orchestrator] Forced advancement but beat ${currentBeatId} has no applyChoice logic. Staying in beat.`);
+        console.warn(`[Orchestrator] Urgency forcing but no next beat defined. Staying in ${currentBeatId}.`);
       }
+    } else if (!aiShouldAdvance) {
+      // AI wants to stay in current beat for more exploration
+      console.log(`[Orchestrator] AI recommends staying in beat for narrative flow.`);
+      nextBeatId = null; // Override any beat transition
     }
 
-    // If returning to same beat, increment repeat count
+    // If returning to same beat or no next beat, increment repeat count
     if (!nextBeatId || nextBeatId === currentBeatId) {
       gameState.narrative.incrementBeatRepeatCount();
+      gameState.narrative.incrementBeatRepeatCount(); // Increment urgency too
     } else {
       // Moving to new beat: reset repeat count and urgency
       gameState.narrative.resetBeatRepeatCount();
@@ -168,8 +187,6 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
       runBeat(nextBeatId);
     } else {
       // Stay in current beat but re-run it with updated repeat count
-      // This lets the beat provide new content for repeated iterations
-      gameState.narrative.incrementBeatRepeatCount();
       runBeat(currentBeatId);
     }
   }

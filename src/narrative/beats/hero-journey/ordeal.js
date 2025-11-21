@@ -7,7 +7,7 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
 
   const beat = {
     id,
-    async enter({ gameState }) {
+    async enter({ gameState, previousPage, previousChoice }) {
       const suspects = Array.from(gameState.mystery.suspects.values());
       const suspectList = suspects.map(s => `- ${s.name} (${s.role})`).join("\n");
       
@@ -16,13 +16,12 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
       const content = await generateBeatContent({
         gameState,
         instructions,
-        beatId: id
+        beatId: id,
+        previousPage,
+        previousChoice
       });
       
       // Force choice IDs to match suspect IDs for easy parsing
-      // We'll trust the LLM generated suitable labels, but we might want to hardcode the IDs if we were stricter.
-      // For now, rely on mapping LLM output.
-      
       const choices = content.choices.map(c => ({
         ...c,
         id: `${id}:${c.id}`
@@ -31,6 +30,7 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
       return {
         phase: LOOP_PHASES.ORDEAL,
         text: { title: content.title, body: content.body },
+        shouldAdvance: content.shouldAdvance,
         choices
       };
     },

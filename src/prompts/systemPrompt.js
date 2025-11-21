@@ -12,6 +12,14 @@ TONE & STYLE GUIDE:
   - Reserve isolated single-line sentences for strong emphasis or beat moments.
   - Make it look like a children's book layout occasionally: sparse and punchy, but not excessively split.
 
+NARRATIVE FLOW:
+- You will receive the previous page and the choice that was made. USE THIS CONTEXT.
+- The new page MUST logically flow from what just happened. Reference the choice, acknowledge consequences.
+- You control narrative pacing via "shouldAdvance" field:
+  * Set shouldAdvance=true when the scene naturally concludes and should move to next beat
+  * Set shouldAdvance=false when more exploration/dialogue is needed in current location/scene
+  * If urgencyLevel >= urgencyThreshold, you MUST set shouldAdvance=true and narratively justify the forced progression (e.g., "reality collapses around you", "time runs out")
+
 Context:
 - Protagonist: Zoythe, a ${terminology.murder_mystery} victim investigating their own death.
 - World Tone: ${worldTone} (but filtered through the droll, whimsical voice).
@@ -22,6 +30,7 @@ Valid JSON Schema:
 {
   "title": "string",
   "body": "string",
+  "shouldAdvance": boolean,
   "choices": [
     {
       "id": "string",

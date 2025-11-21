@@ -7,7 +7,7 @@ export function registerCallToAdventureBeat({ beatOrchestrator }) {
 
   const beat = {
     id,
-    async enter({ gameState, terminology }) {
+    async enter({ gameState, terminology, previousPage, previousChoice }) {
       const mystery = gameState.mystery;
       const weapon = mystery ? mystery.weapon.name : "an unknown weapon";
 
@@ -17,7 +17,9 @@ export function registerCallToAdventureBeat({ beatOrchestrator }) {
       const content = await generateBeatContent({ 
         gameState, 
         instructions, 
-        beatId: id 
+        beatId: id,
+        previousPage,
+        previousChoice
       });
 
       const choices = content.choices.map(c => ({
@@ -28,6 +30,7 @@ export function registerCallToAdventureBeat({ beatOrchestrator }) {
       return {
         phase: LOOP_PHASES.INTRO,
         text: { title: content.title, body: content.body },
+        shouldAdvance: content.shouldAdvance,
         choices
       };
     },

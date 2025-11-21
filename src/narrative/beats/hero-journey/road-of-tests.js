@@ -20,7 +20,7 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
   // The Investigation Beat
   const investigationBeat = {
     id: firstTrialId,
-    async enter({ gameState, rng, beatRepeatCount }) {
+    async enter({ gameState, rng, beatRepeatCount, previousPage, previousChoice }) {
       const clue = getUndiscoveredClue(gameState.mystery);
       
       // Vary instructions based on repetition
@@ -47,7 +47,9 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
       const content = await generateBeatContent({
         gameState,
         instructions,
-        beatId: firstTrialId
+        beatId: firstTrialId,
+        previousPage,
+        previousChoice
       });
 
       const choices = content.choices.map(c => ({
@@ -58,6 +60,7 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
       return {
         phase: LOOP_PHASES.ASCENT,
         text: { title: content.title, body: content.body },
+        shouldAdvance: content.shouldAdvance,
         choices
       };
     },
@@ -79,8 +82,15 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
         return "heroJourney:ordeal:heartOfInterregnum";
       }
 
+      // Check AI recommendation (stored in gameState by orchestrator)
+      const aiWantsAdvance = gameState.narrative.aiShouldAdvance !== false;
+      
+      // If AI says stay and we haven't hit clue threshold, return null to stay
+      if (!aiWantsAdvance) {
+        return null;
+      }
+
       // Otherwise, return null to stay in this beat (will repeat with new iteration count)
-      // The beat will be re-run with beatRepeatCount incremented
       return null;
     }
   };

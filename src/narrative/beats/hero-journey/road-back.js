@@ -7,7 +7,7 @@ export function registerRoadBackBeat({ beatOrchestrator, gameState }) {
 
   const beat = {
     id,
-    async enter({ gameState }) {
+    async enter({ gameState, previousPage, previousChoice }) {
       const accusationResult = gameState.narrative.flags["accusationResult"];
       const didAccuseCorrectly = accusationResult === "correct";
       const killer = gameState.mystery.suspects.get(gameState.mystery.killerId);
@@ -19,7 +19,9 @@ export function registerRoadBackBeat({ beatOrchestrator, gameState }) {
       const content = await generateBeatContent({
         gameState,
         instructions,
-        beatId: id
+        beatId: id,
+        previousPage,
+        previousChoice
       });
 
       const choices = content.choices.map(c => ({
@@ -30,6 +32,7 @@ export function registerRoadBackBeat({ beatOrchestrator, gameState }) {
       return {
         phase: LOOP_PHASES.RETURN,
         text: { title: content.title, body: content.body },
+        shouldAdvance: content.shouldAdvance,
         choices
       };
     },

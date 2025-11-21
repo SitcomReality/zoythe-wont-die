@@ -8,7 +8,7 @@ export function registerMeetingMentorBeat({ beatOrchestrator, gameState }) {
 
   const beat = {
     id,
-    async enter({ gameState }) {
+    async enter({ gameState, previousPage, previousChoice }) {
       const mentors = getNPCsByRole(gameState.npcRoster, NPC_ROLES.MENTOR);
       const mentor = mentors.length > 0 ? Array.from(mentors.values())[0] : null;
 
@@ -27,7 +27,9 @@ export function registerMeetingMentorBeat({ beatOrchestrator, gameState }) {
       const content = await generateBeatContent({ 
         gameState, 
         instructions, 
-        beatId: id 
+        beatId: id,
+        previousPage,
+        previousChoice
       });
 
       const choices = content.choices.map(c => ({
@@ -38,6 +40,7 @@ export function registerMeetingMentorBeat({ beatOrchestrator, gameState }) {
       return {
         phase: LOOP_PHASES.INTRO,
         text: { title: content.title, body: content.body },
+        shouldAdvance: content.shouldAdvance,
         choices
       };
     },
