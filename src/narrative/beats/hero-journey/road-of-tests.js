@@ -19,29 +19,44 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
   // The Investigation Beat
   const investigationBeat = {
     id: firstTrialId,
-    async enter({ gameState, rng }) {
+    async enter({ gameState, rng, beatRepeatCount }) {
       const clue = getUndiscoveredClue(gameState.mystery);
       
+      // Vary instructions based on repetition
       let instructions = "";
+      const isRepeat = beatRepeatCount > 0;
+      
       if (clue) {
         instructions = `
-          This is an Investigation Scene.
+          This is an Investigation Scene (iteration ${beatRepeatCount + 1}).
           The protagonist is exploring the glitching world/memories.
           Hidden here is a clue: "${clue.label}" - ${clue.description}.
           Describe the location (e.g., a memory fragment, a ruined temple, a digital void).
           The player must choose how to interact to find the truth.
+        `;
+        
+        if (isRepeat) {
+          instructions += `
+          
+          NOTE: The player is revisiting this location. The environment has shifted or deteriorated slightly.
+          Perhaps they notice new details, or the pressure to move on is increasing.
+          If this is iteration 3+, the world should start insisting they leave or accept what they've found.
+          `;
+        }
+        
+        instructions += `
           Provide 2-3 choices:
           - Investigate closely (Risk/Reward) -> Will reveal clue.
           - Ask a nearby spirit/NPC (Social) -> Might reveal clue.
           - Ignore it/Focus on survival (Caution) -> Misses clue.
         `;
-        // Temporarily store the clue ID on the beat state or gamestate to retrieve in applyChoice
-        // For simplicity, we'll look it up again or assume positive choices find it.
+        
         gameState.narrative.pendingClueId = clue.id;
       } else {
         instructions = `
           This is a transition scene. The trail has gone cold for a moment.
           The world glitches violently.
+          ${isRepeat ? `This is attempt ${beatRepeatCount + 1}. The environment is degrading.` : ""}
           Provide choices to travel to a new location or rest.
         `;
         gameState.narrative.pendingClueId = null;
@@ -67,35 +82,24 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
 
     applyChoice(choice, { gameState }) {
       // Check if choice leads to clue discovery
-      // We use the classifier to see if they investigated/analyzed/interrogated
-      // Or if the choice effects explicitly say so (Phase 4 feature).
-      // For now, map affirmative actions to discovery.
-      
       const { pendingClueId } = gameState.narrative;
-      
-      // We'll assume any "Advance", "Investigate", "Analyze", "Interrogate" type works.
-      // Using the classifier from the orchestrator pass would be ideal, but we can re-infer here or trust the intent.
-      // Since we don't have the classification handy in arguments easily without re-importing, let's assume positive action.
-      
       const isPassive = choice.id.includes("ignore") || choice.id.includes("flee") || choice.id.includes("rest");
       
       if (pendingClueId && !isPassive) {
         gameState.mystery.clues.discovered.add(pendingClueId);
-        // Optionally notify player via a status message or event?
-        // For now, the dossier update will show it.
       }
 
-      // Loop back to tests or move to Ordeal if enough clues?
-      // Simplified logic: 3 tests then Ordeal.
-      // We can use beatIndex to track local progress roughly.
+      // Decide whether to advance or stay
+      const cluesFound = gameState.mystery.clues.discovered.size;
       
-      // For this demo, let's just ping-pong or move to Ordeal after a few steps.
-      if (gameState.mystery.clues.discovered.size >= 3) {
+      // After 3 clues, advance to Ordeal
+      if (cluesFound >= 3) {
         return "heroJourney:ordeal:heartOfInterregnum";
       }
 
-      // Otherwise, keep investigating (or maybe trigger an urgent rail)
-      return firstTrialId; 
+      // Otherwise, return null to stay in this beat (will repeat with new iteration count)
+      // The beat will be re-run with beatRepeatCount incremented
+      return null;
     }
   };
 

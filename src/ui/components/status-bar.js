@@ -34,12 +34,14 @@ export function createStatusBar({ root, gameState }) {
       ${heroismDots ? `<span class="status-bar__heroism" title="Heroism">${heroismDots}</span>` : ""}
     `;
     
-    // Right: beat progress and current beat name
+    // Right: beat progress, current beat name, and urgency indicator
     const pageNum = narrative.beatIndex != null ? narrative.beatIndex + 1 : "?";
     const lastBeatId = narrative.lastBeatId || "";
-    // Derive a short beat name from id (use last segment after ':' if present)
     const beatName = lastBeatId ? lastBeatId.split(":").pop() : "—";
-    right.textContent = `${pageNum} • ${beatName}`;
+    const repeatCount = narrative.beatRepeatCount > 0 ? ` [${narrative.beatRepeatCount + 1}]` : "";
+    const urgencyBar = narrative.urgencyLevel > 0 ? ` ◆`.repeat(Math.min(narrative.urgencyLevel, 3)) : "";
+    
+    right.textContent = `${pageNum} • ${beatName}${repeatCount}${urgencyBar}`;
   }
 
   return { render };
