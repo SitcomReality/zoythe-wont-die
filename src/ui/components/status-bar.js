@@ -34,8 +34,12 @@ export function createStatusBar({ root, gameState }) {
       ${heroismDots ? `<span class="status-bar__heroism" title="Heroism">${heroismDots}</span>` : ""}
     `;
     
-    // Right: beat progress
-    right.textContent = `${narrative.beatIndex + 1}`;
+    // Right: beat progress and current beat name
+    const pageNum = narrative.beatIndex != null ? narrative.beatIndex + 1 : "?";
+    const lastBeatId = narrative.lastBeatId || "";
+    // Derive a short beat name from id (use last segment after ':' if present)
+    const beatName = lastBeatId ? lastBeatId.split(":").pop() : "—";
+    right.textContent = `${pageNum} • ${beatName}`;
   }
 
   return { render };
