@@ -61,11 +61,13 @@ export function createHistoryPanel({ root }) {
 
       // Insert the choice the player submitted to reach the next page (if any)
       // We expect choiceHistory entries to include .beatIndex which corresponds to the beat index at time of choice.
+      // The choice that led to this page will have been recorded at the previous beatIndex.
+      // For page at index `idx`, the triggering choice's beatIndex is `idx - 1`.
       const submitted = choiceHistory
         .slice() // copy
         .reverse()
-        .find(c => c.beatIndex === idx);
-
+        .find(c => c.beatIndex === (idx - 1));
+      
       const choiceContainer = document.createElement("div");
       choiceContainer.className = "history-panel__choice-row";
 
