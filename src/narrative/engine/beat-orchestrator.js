@@ -22,7 +22,12 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     }
 
     gameState.narrative.lastBeatId = id;
-    const context = { eventBus, gameState, rng };
+    
+    // Generate terminology context for this beat
+    const { generateTerminologyContext } = await import("../../systems/terminology-thesaurus.js");
+    const terminology = generateTerminologyContext(rng);
+    
+    const context = { eventBus, gameState, rng, terminology };
 
     // Signal loading state to UI
     eventBus.emit("narrative:loading", { beatId: id });

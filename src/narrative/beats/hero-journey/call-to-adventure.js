@@ -9,18 +9,17 @@ export function registerCallToAdventureBeat({ beatOrchestrator }) {
     async enter({ gameState }) {
       const mystery = gameState.mystery;
       const weapon = mystery ? mystery.weapon.name : "an unknown weapon";
-      const twist = mystery ? mystery.twist : "a murder";
 
       const instructions = `
         This is the 'Call to Adventure', which is now 'The Discovery of the Corpse'.
         The protagonist stands over their own mortal body (or what remains of it).
-        They see the glint of the murder weapon: ${weapon}.
-        The reality around them is glitching.
-        The Call is the realization: The system of death is broken because YOU were murdered illegally (or the Death God was).
-        You must solve your own murder to fix the loop or escape it.
+        They see the glint of the ${terminology.weapon}: ${weapon}.
+        The ${terminology.reality} around them is ${terminology.glitch}ing.
+        The Call is the realization: The system of death is broken because YOU were murdered illegally (or the ${terminology.dead_god} was).
+        You must solve your own ${terminology.murder_mystery} to fix the loop or escape it.
         Required Choice Types:
-        - Investigate the body/weapon (Accept Quest / Investigate)
-        - Deny the reality / Try to flee (Refuse)
+        - ${terminology.investigate} the body/${terminology.weapon} (Accept Quest / Investigate)
+        - Deny the ${terminology.reality} / Try to flee (Refuse)
       `;
 
       const content = await generateBeatContent({ 
