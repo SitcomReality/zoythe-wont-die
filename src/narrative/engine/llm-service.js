@@ -134,20 +134,20 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
   const substitutedInstructions = substituteTerminology(instructions, terminology);
 
   const userPrompt = `
-Current State: ${JSON.stringify(context, null, 2)}
+=== PREVIOUS ACTION ===
+The player chose: "${previousChoice ? previousChoice.label : "Start of Game"}"
+${previousChoice ? `(Action ID: ${previousChoice.id})` : ""}
 
-Beat Instructions: ${substitutedInstructions}
+=== CURRENT CONTEXT ===
+${JSON.stringify(context, null, 2)}
 
-Foreshadowing Guidance:
-- The "foreshadowing.pending" array in the Current State lists future twists or reveals.
-- When it feels natural for this beat, add subtle hints or atmospheric details that allude to these without naming the twist directly.
-- Do NOT spoil the twist; just make the world or NPC behavior gently point in that direction.
+=== INSTRUCTIONS ===
+${substitutedInstructions}
 
-Clue-Based Choices Guidance:
-- The "mystery.knownClues" array in the Current State lists clues the player has already discovered.
-- When relevant, offer choices that explicitly reference these clues.
-
-Generate content for beat ID: ${beatId}.
+=== GENERATION GUIDELINES ===
+1. START the narrative by describing the player performing the "Previous Action".
+2. Ensure no choice labels reveal information not present in the text.
+3. Generate content for beat ID: ${beatId}.
 `;
 
   try {

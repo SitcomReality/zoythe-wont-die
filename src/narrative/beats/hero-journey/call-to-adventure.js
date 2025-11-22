@@ -102,14 +102,45 @@ ${additionalContext}
 
         // Classify investigation type
         let investigationType = null;
-        if (lowerLabel.includes("body") || lowerLabel.includes("examine") || lowerLabel.includes("corpse")) {
-          investigationType = INVESTIGATION_METHODS.BODY_EXAMINATION;
-        } else if (lowerLabel.includes("surroundings") || lowerLabel.includes("around") || lowerLabel.includes("environment")) {
-          investigationType = INVESTIGATION_METHODS.SURROUNDINGS;
-        } else if (lowerLabel.includes("memor") || lowerLabel.includes("recall") || lowerLabel.includes("remember")) {
-          investigationType = INVESTIGATION_METHODS.MEMORY_RECALL;
-        } else if (lowerLabel.includes("move") || lowerLabel.includes("forward") || lowerLabel.includes("accept")) {
+        
+        // Robust detection of investigation intent to prevent accidental skipping
+        const isInvestigation = 
+          lowerLabel.includes("body") || 
+          lowerLabel.includes("examine") || 
+          lowerLabel.includes("corpse") ||
+          lowerLabel.includes("surroundings") || 
+          lowerLabel.includes("around") || 
+          lowerLabel.includes("environment") ||
+          lowerLabel.includes("memor") || 
+          lowerLabel.includes("recall") || 
+          lowerLabel.includes("remember") ||
+          lowerLabel.includes("investigate") ||
+          lowerLabel.includes("look") ||
+          lowerLabel.includes("check") ||
+          lowerLabel.includes("search") ||
+          lowerLabel.includes("analyze") ||
+          lowerLabel.includes("inspect") ||
+          lowerLabel.includes("weapon");
+
+        // Explicit advance keywords
+        const isAdvance = 
+          lowerLabel.includes("move on") || 
+          lowerLabel.includes("leave") || 
+          lowerLabel.includes("accept fate");
+
+        if (isAdvance) {
           investigationType = "advance";
+        } else if (lowerLabel.includes("body") || lowerLabel.includes("corpse")) {
+          investigationType = INVESTIGATION_METHODS.BODY_EXAMINATION;
+        } else if (lowerLabel.includes("surroundings") || lowerLabel.includes("environment")) {
+          investigationType = INVESTIGATION_METHODS.SURROUNDINGS;
+        } else if (lowerLabel.includes("memor") || lowerLabel.includes("recall")) {
+          investigationType = INVESTIGATION_METHODS.MEMORY_RECALL;
+        } else if (isInvestigation) {
+          // Fallback for generic investigation actions that didn't match specific buckets
+          // We map them to SURROUNDINGS or BODY based on context, or just 'surroundings' as safe default
+          // This ensures they don't return null investigationType and accidentally advance
+          investigationType = INVESTIGATION_METHODS.SURROUNDINGS; 
         }
 
         return {
@@ -140,8 +171,15 @@ ${additionalContext}
       const discovered = gameState.narrative.flags["discoveredCluesInCTA"];
       const investigationUsed = gameState.narrative.flags["investigationMethodsUsed"] || new Set();
 
-      // If player chose to investigate, reveal clues
-      if (investigationType && investigationType !== "advance") {
+      // If investigationType is "advance", we move on.
+      // If investigationType is null, it usually means it didn't match anything.
+      // However, in this specific beat, "null" usually meant "fall through to return meetingMentor".
+      // We want to invert that: Default to STAY unless explicitly advancing.
+      
+      const isAdvance = investigationType === "advance";
+
+      // If player chose to investigate (any valid type NOT advance), reveal clues and stay
+      if (!isAdvance && investigationType) {
         investigationUsed.add(investigationType);
         gameState.narrative.flags["investigationMethodsUsed"] = investigationUsed;
 
@@ -162,6 +200,12 @@ ${additionalContext}
 
         // Return null to stay in this beat (will increment beat repeat count)
         return null;
+      }
+      
+      // Safety check: If we somehow got a null investigationType (e.g. "Scream into the void"),
+      // we should probably stay in the beat rather than defaulting to advancing, unless repeat count is high.
+      if (!isAdvance && gameState.narrative.beatRepeatCount < 3) {
+         return null;
       }
 
       // If player chose to advance, move to next beat

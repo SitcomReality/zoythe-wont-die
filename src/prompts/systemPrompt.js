@@ -28,8 +28,22 @@ TONE & STYLE GUIDE:
   - Reserve isolated single-line sentences for strong emphasis or beat moments.
   - Make it look like a children's book layout occasionally: sparse and punchy, but not excessively split.
 
+NARRATIVE CONTINUITY (CRITICAL):
+- You will receive the "Previous Choice" that led to this moment.
+- **The VERY FIRST sentence(s) of your new content MUST explicitly narrate the execution of that action.** 
+  - If the player chose "Investigate the weapon", start with "You lean in to squint at the lethal implement..."
+  - If the player chose "Flee", start with "You scramble away..."
+  - If the player input custom text, acknowledge it directly in the narrative, even if it fails or has a weird result.
+- Do NOT jump straight to the next plot point without resolving the player's input. Bridging the gap is your primary job.
+
+BUTTON/CHOICE SAFETY (CRITICAL):
+- **NO SPOILERS IN BUTTONS**: Never include specific details (names, object types, secrets) in a Choice Label unless those details have ALREADY been revealed in the text of the current page or previous history.
+  - Bad: Text says "You see a shape." -> Choice says "Pick up the Ancient Void Dagger".
+  - Good: Text says "You see a shape." -> Choice says "Inspect the shape".
+  - Good: Text says "It is a Void Dagger." -> Choice says "Pick up the Void Dagger".
+- Choices must flow logically from the text you just generated.
+
 NARRATIVE FLOW:
-- You will receive the previous page and the choice that was made. USE THIS CONTEXT.
 - The new page MUST logically flow from what just happened. Reference the choice, acknowledge consequences.
 - RAILROADING PHILOSOPHY: If a rail is active, follow its instructions.
 `;
