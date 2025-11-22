@@ -52,15 +52,26 @@ export function createMystery({ rng, scope = "regional" }) {
           linkToDeathGod: "Connected to your demise."
         };
       }
-    } else {
+    } else if (deathScenario.weaponVisible) {
+      // Only auto-select weapon if scenario indicates it should be visible
       weaponTemplate = rng.pick(WEAPONS);
     }
+    // else: deathScenario has no physical weapon; leave weaponTemplate null
 
-    const weapon = {
+    const weapon = weaponTemplate ? {
       id: `weapon-${rng.int(100,999)}`,
       ...weaponTemplate,
       description: `A lethal artifact. ${weaponTemplate.linkToDeathGod}`,
-      discoveryTier: deathScenario.investigationLevel + 1
+      discoveryTier: deathScenario.investigationLevel + 1,
+      discoverable: !deathScenario.weaponVisible // Mark as discoverable if not immediately visible
+    } : {
+      id: `weapon-unknown`,
+      name: "Unknown",
+      type: "unknown",
+      description: "The weapon used remains a mystery.",
+      linkToDeathGod: "Unknown connection to your death.",
+      discoveryTier: deathScenario.investigationLevel + 2,
+      discoverable: true // Always discoverable if unknown
     };
 
     // 5. Generate Suspects

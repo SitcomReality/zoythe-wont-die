@@ -36,17 +36,33 @@ export function seedClues({ suspects, killerId, weapon, rng, twistTemplate, deat
     ? INVESTIGATION_METHODS.BODY_EXAMINATION 
     : INVESTIGATION_METHODS.IMMEDIATE;
   
-  addClue({
-    id: weaponClueId,
-    label: "The Murder Weapon",
-    type: "PHYSICAL",
-    description: weapon ? `${weapon.name}. ${weapon.description}.` : "An unknown method of death.",
-    relatedSuspectIds: [], 
-    truthValue: true,
-    tier: 1,
-    discoveryMethod: weaponVisibility,
-    context: deathScenario ? deathScenario.name : "unknown"
-  });
+  // Only add weapon clue if weapon is known or discoverable
+  if (weapon && weapon.name !== "Unknown") {
+    addClue({
+      id: weaponClueId,
+      label: "The Murder Weapon",
+      type: "PHYSICAL",
+      description: weapon ? `${weapon.name}. ${weapon.description}.` : "An unknown method of death.",
+      relatedSuspectIds: [], 
+      truthValue: true,
+      tier: 1,
+      discoveryMethod: weaponVisibility,
+      context: deathScenario ? deathScenario.name : "unknown"
+    });
+  } else if (weapon && weapon.name === "Unknown" && deathScenario?.investigationLevel > 0) {
+    // Add a clue about discovering the weapon method
+    addClue({
+      id: weaponClueId,
+      label: "Weapon Discovery",
+      type: "PHYSICAL",
+      description: "The method of death requires closer investigation to determine.",
+      relatedSuspectIds: [],
+      truthValue: true,
+      tier: deathScenario.investigationLevel + 1,
+      discoveryMethod: INVESTIGATION_METHODS.BODY_EXAMINATION,
+      context: deathScenario.name
+    });
+  }
 
   // 2. Method Clue (scenario-specific)
   if (deathScenario) {

@@ -15,6 +15,7 @@ TONE & STYLE GUIDE:
 NARRATIVE FLOW:
 - You will receive the previous page and the choice that was made. USE THIS CONTEXT.
 - The new page MUST logically flow from what just happened. Reference the choice, acknowledge consequences.
+- Weapon Handling: If weapon is "Unknown" in mystery context, focus investigation choices on discovering the method rather than the weapon.
 - You control narrative pacing via "shouldAdvance" field:
   * Set shouldAdvance=true when the scene naturally concludes and should move to next beat
   * Set shouldAdvance=false when more exploration/dialogue is needed in current location/scene
