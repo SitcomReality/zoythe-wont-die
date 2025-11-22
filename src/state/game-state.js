@@ -5,6 +5,7 @@ import { HERO_ARCHETYPES, STORY_SCOPE } from "../config/constants.js";
 import { createMemoryContext } from "./memory-context.js";
 import { createConsequenceTracker } from "../systems/consequence-tracker.js";
 import { createForeshadowingTracker } from "../systems/foreshadowing-tracker.js";
+import { generateSetting } from "../systems/setting-generator.js";
 
 export function createGameState({ rng, config = {} }) {
   const player = createPlayerState({ rng });
@@ -27,6 +28,9 @@ export function createGameState({ rng, config = {} }) {
     const scopes = Object.values(STORY_SCOPE);
     world.scope = rng.pick(scopes);
   }
+  
+  // Generate Concrete Setting
+  world.setting = generateSetting({ rng, scope: world.scope });
   
   if (config.archetype) {
     player.archetype = config.archetype;

@@ -7,12 +7,16 @@ export function createWorldState({ rng }) {
     flags: Object.create(null),
     tags: [],
     deathScenario: null, // Will store death scenario details
+    setting: null, // Concrete setting details
+    scope: null, // Story scope
     applyDelta(delta) {
       for (const [k, v] of Object.entries(delta)) {
         if (k === "tags" && Array.isArray(v)) {
           this.tags.push(...v);
         } else if (k === "activeEffects" && Array.isArray(v)) {
           this.activeEffects.push(...v);
+        } else if (k === "setting" && v) {
+          this.setting = v;
         } else {
           this[k] = v;
         }

@@ -1,4 +1,4 @@
-export default function buildSystemPrompt({ terminology, worldTone, choiceClassifications, scope = "regional" }) {
+export default function buildSystemPrompt({ terminology, worldTone, choiceClassifications, scope = "regional", setting = null, options = {} }) {
   const scopeGuidance = {
     intimate: `SCOPE: INTIMATE. This story is small and personal. The stakes are family honor, lost love, neighborhood secrets. Characters are ordinary people with ordinary problems. Avoid grandiose or cosmic language.`,
     regional: `SCOPE: REGIONAL. This story involves a town or region. Characters include mayors, priests, merchants, nobles. Stakes include local politics, community reputation, regional authority. The world is more complex than one family, but still bounded.`,
@@ -7,11 +7,17 @@ export default function buildSystemPrompt({ terminology, worldTone, choiceClassi
   };
 
   const scope_text = scopeGuidance[scope] || scopeGuidance.regional;
+  
+  // Use concrete setting synopsis if available
+  const settingContext = setting 
+    ? `SETTING: ${setting.synopsis}\nLOCATION: ${setting.primaryLocation}` 
+    : `SETTING: A generic fantasy location appropriate for a ${scope} scope.`;
 
-  return `
-You are the AI Game Master for "Zoythe Won't Die", a a darkly comedic murder-mystery set in a high-fantasy world experiencing a chaotic upheavel as its gods die - including, in this case, a god whose domain was death.  The story begins after the protagonist, Zoythe, wakes up to discover they've been murdered, but haven't properly moved on.
+  let prompt = `
+You are the AI Game Master for "Zoythe Won't Die", a darkly comedic murder-mystery set in a high-fantasy world experiencing a chaotic upheavel as its gods die - including, in this case, a god whose domain was death.  The story begins after the protagonist, Zoythe, wakes up to discover they've been murdered, but haven't properly moved on.
 
 ${scope_text}
+${settingContext}
 
 TONE & STYLE GUIDE:
 - Voice: Droll, irreverent, and slightly comedic (think "Douglas Adams meets a PG Deadpool").
@@ -25,15 +31,18 @@ TONE & STYLE GUIDE:
 NARRATIVE FLOW:
 - You will receive the previous page and the choice that was made. USE THIS CONTEXT.
 - The new page MUST logically flow from what just happened. Reference the choice, acknowledge consequences.
-- Weapon Handling: If weapon is "Unknown" in mystery context, focus investigation choices on discovering the method rather than the weapon.
-- RAILROADING PHILOSOPHY: Prefer to let the player explore and investigate. Only set shouldAdvance=true when:
-  * The scene naturally concludes
-  * Player explicitly chooses to move forward
-  * Urgency threshold is met AND situation is critical (ordeal/revelation moments)
-- You control narrative pacing via "shouldAdvance" field:
-  * Set shouldAdvance=false (default) to let player continue exploring/investigating current beat
-  * Set shouldAdvance=true only when beat naturally concludes or critical story moment requires it
+- RAILROADING PHILOSOPHY: If a rail is active, follow its instructions.
+`;
 
+  if (options.railroadActive) {
+    prompt += `\nRAILROAD INSTRUCTION: ${options.railroadInstruction || "Guide the player back to the main plot."}\n`;
+  }
+
+  if (options.isCombat) {
+    prompt += `\nCOMBAT FORMAT: Use short sentences and focus on action. Focus on intent rather than dice mechanics.\n`;
+  }
+
+  prompt += `
 CLUE-BASED CHOICES:
 - The context will include a list of discovered clues; when they are relevant, you should sometimes offer choices that explicitly reference these clues by name.
 - Clue-using choices are optional flavor/investigation options, not the sole path forward; always include at least one non-clue-based way to progress.
@@ -75,4 +84,6 @@ Valid Consequence Types: relationshipShift, reputationImpact, investigationBlock
 
 Include 2-3 choices. If the player input a specific action, try to reflect its consequences in the narrative or choices.
 `;
+
+  return prompt;
 }

@@ -31,8 +31,6 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
   };
 
   // Prepare foreshadowing context
-  // Filter pending foreshadowing to only items targeting the current beat (or untargeted ones if we want fallback behavior, but targeted is safer)
-  // The ForeshadowingTracker's getPendingForBeat already handles the filtering logic.
   const pendingForeshadowing = gameState.foreshadowingTracker
     ? gameState.foreshadowingTracker.getPendingForBeat(beatId).map(f => ({
         id: f.id,
@@ -62,7 +60,6 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
           type: clue.type,
           context: clue.context,
           hasBeenUsedInChoice: usedSet.has(id),
-          // Expose red herring status to the model without revealing it in-story
           isRedHerring: clue.truthValue === false
         };
     }).filter(Boolean);
@@ -91,7 +88,8 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     world: {
       tone: world.tone,
       tags: world.tags,
-      primaryMacGuffin: (mystery && mystery.weapon) ? mystery.weapon : (world.primaryMacGuffin || null)
+      primaryMacGuffin: (mystery && mystery.weapon) ? mystery.weapon : (world.primaryMacGuffin || null),
+      setting: world.setting // Add setting to context
     },
     memory: memorySnapshot,
     mystery: mysteryContext,
@@ -112,12 +110,21 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     beatRepeatCount: narrative.beatRepeatCount
   };
 
+  // Determine System Options
+  const options = {
+    railroadActive: narrative.railsInvoked.length > 0,
+    railroadInstruction: narrative.railsInvoked.length > 0 ? narrative.railsInvoked[narrative.railsInvoked.length - 1].reason : null,
+    isCombat: false // Placeholder for future combat detection logic
+  };
+
   // Build system prompt with scope included
   const systemPrompt = buildSystemPrompt({
     terminology,
     worldTone: world.tone,
     choiceClassifications: Object.values(CHOICE_CLASSIFICATIONS),
-    scope: mystery?.scope || world.scope || "regional"
+    scope: mystery?.scope || world.scope || "regional",
+    setting: world.setting,
+    options
   });
 
   // Substitute terminology in instructions
@@ -134,11 +141,8 @@ Foreshadowing Guidance:
 - Do NOT spoil the twist; just make the world or NPC behavior gently point in that direction.
 
 Clue-Based Choices Guidance:
-- The "mystery.knownClues" array in the Current State lists clues the player has already discovered, including which ones have been used in previous choices.
-- When relevant to the scene or NPC, offer 0–2 OPTIONAL choices that explicitly reference one or more of these clues by name (for example: "Ask about the muddy footprints" or "Confront them with the Witness Statement").
-- Prefer using clues where hasBeenUsedInChoice=false so that each clue can shine at least once.
-- Some clue-using choices can be red herrings or partial dead-ends, but they should never make the mystery unsolvable.
-- Do not make clue-using choices the ONLY way to advance; always include at least one non-clue-based option that can move the story forward.
+- The "mystery.knownClues" array in the Current State lists clues the player has already discovered.
+- When relevant, offer choices that explicitly reference these clues.
 
 Generate content for beat ID: ${beatId}.
 `;
@@ -154,7 +158,6 @@ Generate content for beat ID: ${beatId}.
 
     const result = JSON.parse(completion.content);
 
-    // After successful generation, mark any foreshadowing used for this beat as delivered
     if (gameState.foreshadowingTracker && pendingForeshadowing.length > 0) {
       for (const f of pendingForeshadowing) {
         gameState.foreshadowingTracker.markDelivered(f.id);
