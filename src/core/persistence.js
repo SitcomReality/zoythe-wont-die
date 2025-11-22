@@ -1,25 +1,38 @@
 import { NPC_ROLES } from "../config/constants.js";
 
-const STORAGE_KEY = "zoythe_save_v1";
+const STORAGE_KEY = "zoythe_save_v2"; // Bump version for Phase 4/5 compatibility
 
 function serializeMap(map) {
+  if (!map) return [];
   return Array.from(map.entries());
 }
 
 function deserializeMap(entries) {
+  if (!entries) return new Map();
   return new Map(entries);
 }
 
 function serializeSet(set) {
+  if (!set) return [];
   return Array.from(set);
 }
 
 function deserializeSet(arr) {
+  if (!arr) return new Set();
   return new Set(arr);
 }
 
 export function saveGame(gameState) {
   try {
+    // Handle narrative flags that are Sets (specific to Phase 4 features)
+    const narrativeFlags = { ...gameState.narrative.flags };
+    if (narrativeFlags["discoveredCluesInCTA"] instanceof Set) {
+      narrativeFlags["discoveredCluesInCTA"] = serializeSet(narrativeFlags["discoveredCluesInCTA"]);
+    }
+    if (narrativeFlags["investigationMethodsUsed"] instanceof Set) {
+      narrativeFlags["investigationMethodsUsed"] = serializeSet(narrativeFlags["investigationMethodsUsed"]);
+    }
+
     const serialized = {
       player: {
         ...gameState.player,
@@ -29,7 +42,8 @@ export function saveGame(gameState) {
         ...gameState.world,
       },
       narrative: {
-        ...gameState.narrative
+        ...gameState.narrative,
+        flags: narrativeFlags
       },
       memory: gameState.memory.serialize(),
       consequenceTracker: gameState.consequenceTracker.serialize(),
@@ -37,7 +51,7 @@ export function saveGame(gameState) {
         ? gameState.foreshadowingTracker.serialize()
         : [],
       npcRoster: serializeMap(gameState.npcRoster),
-      // Serialize Mystery
+      // Serialize Mystery and its new Sets/Maps
       mystery: gameState.mystery ? {
         ...gameState.mystery,
         suspects: serializeMap(gameState.mystery.suspects),
@@ -73,6 +87,16 @@ export function loadGame() {
     }
     if (data.npcRoster) {
       data.npcRoster = deserializeMap(data.npcRoster);
+    }
+    
+    // Hydrate Narrative Sets inside Flags
+    if (data.narrative && data.narrative.flags) {
+      if (Array.isArray(data.narrative.flags["discoveredCluesInCTA"])) {
+        data.narrative.flags["discoveredCluesInCTA"] = deserializeSet(data.narrative.flags["discoveredCluesInCTA"]);
+      }
+      if (Array.isArray(data.narrative.flags["investigationMethodsUsed"])) {
+        data.narrative.flags["investigationMethodsUsed"] = deserializeSet(data.narrative.flags["investigationMethodsUsed"]);
+      }
     }
     
     // Hydrate Mystery Maps/Sets
