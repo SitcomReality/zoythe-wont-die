@@ -3,7 +3,7 @@ import { generateTerminologyContext, substituteTerminology } from "../../systems
 import buildSystemPrompt from "../../prompts/systemPrompt.js";
 
 export async function generateBeatContent({ gameState, instructions, beatId, previousPage = null, previousChoice = null }) {
-  const { player, world, narrative, mystery, rng } = gameState;
+  const { player, world, narrative, mystery, memory, rng } = gameState;
 
   // Generate randomized terminology for this beat
   const terminology = generateTerminologyContext(rng);
@@ -13,6 +13,15 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     title: h.title,
     summary: h.body ? h.body.substring(0, 150) + "..." : ""
   }));
+
+  // Prepare memory context
+  const memorySnapshot = {
+    recentEvents: memory.getRecentEvents(3),
+    knownLocations: memory.getLocationsSummary(),
+    knownNpcs: memory.getKnownNpcs(),
+    unfulfilledPromises: memory.getUnfulfilledPromises(),
+    unfulfilledConsequences: memory.getUnfulfilledConsequences()
+  };
 
   // Prepare mystery context (if active)
   let mysteryContext = null;
@@ -50,9 +59,9 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     world: {
       tone: world.tone,
       tags: world.tags,
-      // Ensure the primaryMacGuffin reflects the murder weapon (if a mystery exists)
       primaryMacGuffin: (mystery && mystery.weapon) ? mystery.weapon : (world.primaryMacGuffin || null)
     },
+    memory: memorySnapshot,
     mystery: mysteryContext,
     history: recentHistory,
     previousPage: previousPage ? {

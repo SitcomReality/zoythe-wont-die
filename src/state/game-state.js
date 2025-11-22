@@ -2,11 +2,13 @@ import { createPlayerState } from "./player-state.js";
 import { createWorldState } from "./world-state.js";
 import { createNarrativeState } from "./narrative-state.js";
 import { HERO_ARCHETYPES, STORY_SCOPE } from "../config/constants.js";
+import { createMemoryContext } from "./memory-context.js";
 
 export function createGameState({ rng, config = {} }) {
   const player = createPlayerState({ rng });
   const world = createWorldState({ rng });
   const narrative = createNarrativeState();
+  const memory = createMemoryContext();
   
   // Apply Config Overrides
   if (config.tone) {
@@ -42,6 +44,7 @@ export function createGameState({ rng, config = {} }) {
     player,
     world,
     narrative,
+    memory,
     mystery: null, // Initialize mystery slot
     config // store initial config
   };
@@ -58,12 +61,14 @@ export function hydrateGameState(data, rng) {
   Object.assign(fresh.world, data.world);
   Object.assign(fresh.player, data.player);
   
+  // Hydrate memory
+  if (data.memory) {
+    fresh.memory.deserialize(data.memory);
+  }
+  
   // Hydrate mystery if present
   if (data.mystery) {
     fresh.mystery = data.mystery;
-    // Note: Maps inside mystery (suspects, clues.all) must be hydrated by caller (persistence.js)
-    // before passing 'data' here, or handled here. 
-    // Currently persistence.js handles hydration of known maps.
   }
   
   return fresh;

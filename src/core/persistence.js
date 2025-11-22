@@ -31,6 +31,7 @@ export function saveGame(gameState) {
       narrative: {
         ...gameState.narrative
       },
+      memory: gameState.memory.serialize(),
       npcRoster: serializeMap(gameState.npcRoster),
       // Serialize Mystery
       mystery: gameState.mystery ? {
