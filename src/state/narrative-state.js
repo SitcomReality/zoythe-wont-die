@@ -16,7 +16,9 @@ export function createNarrativeState() {
     // New: Track beat repetition and urgency
     beatRepeatCount: 0, // How many times the current beat has been visited
     urgencyLevel: 0, // Accumulates when player doesn't advance; triggers railroading at threshold
-    urgencyThreshold: 3, // Number of refusals/non-advancing choices before forced progression
+    urgencyThreshold: 5, // INCREASED from 3 -> 5 for more freedom
+    explorationScore: 0, // NEW: Reward thorough investigation
+    investigationAttempts: 0, // NEW: Track investigation depth separately from refusals
     addChoice(choice, classification) {
       this.choiceHistory.push({
         beatIndex: this.beatIndex,

@@ -1,13 +1,14 @@
 export function createRailroadEngine({ gameState, eventBus }) {
-  const REFUSAL_THRESHOLD = 2;
+  const REFUSAL_THRESHOLD = 3; // Increased from 2
 
   function checkRefusalRails() {
     const { narrative } = gameState;
 
-    if (narrative.refusalCount >= REFUSAL_THRESHOLD) {
+    // Only invoke if truly high refusal count AND urgency threshold exceeded
+    if (narrative.refusalCount >= REFUSAL_THRESHOLD && narrative.urgencyLevel >= narrative.urgencyThreshold) {
       return {
         type: "forced-departure",
-        reason: "Repeated refusals trigger divine intervention",
+        reason: "Repeated refusals and urgency trigger divine intervention",
         severity: Math.min(narrative.refusalCount - REFUSAL_THRESHOLD + 1, 3)
       };
     }
@@ -18,16 +19,31 @@ export function createRailroadEngine({ gameState, eventBus }) {
   function checkStallRails() {
     const { narrative } = gameState;
 
-    // If stuck in same phase for too long
-    const recentBeats = narrative.choiceHistory.slice(-5);
-    const phases = recentBeats.map(b => narrative.phase);
-    const uniquePhases = new Set(phases);
-
-    if (uniquePhases.size === 1 && recentBeats.length >= 5) {
+    // Only trigger if VERY stuck (more than 8 repeated beats)
+    if (narrative.beatRepeatCount > 8) {
       return {
         type: "phase-push",
-        reason: "Narrative stalled in current phase",
-        severity: 2
+        reason: "Narrative stalled for extended period",
+        severity: 3
+      };
+    }
+
+    return null;
+  }
+
+  function checkCriticalMomentRails() {
+    const { narrative, mystery } = gameState;
+
+    // Only railroad if we're past ordeal and no choice made yet
+    const isOrdealPhase = narrative.phase === "ordeal";
+    const noAccusationYet = mystery && !mystery.progress.accusationMade;
+
+    // Critical railroads: force ordeal resolution after player is ready
+    if (isOrdealPhase && narrative.urgencyLevel >= narrative.urgencyThreshold && noAccusationYet) {
+      return {
+        type: "forced-ordeal-resolution",
+        reason: "Reality collapses; accusation becomes unavoidable",
+        severity: 3
       };
     }
 
@@ -37,14 +53,14 @@ export function createRailroadEngine({ gameState, eventBus }) {
   function checkRelationshipRails() {
     const { player } = gameState;
 
-    // Check for betrayals
+    // Much more lenient: only if catastrophic relationship collapse
     const betrayals = Array.from(player.relationships.values())
-      .filter(rel => rel.score < -2);
+      .filter(rel => rel.score < -5); // Increased threshold from -2 to -5
 
-    if (betrayals.length >= 2) {
+    if (betrayals.length >= 3) {
       return {
         type: "divine-curse",
-        reason: "Multiple betrayals invoke divine punishment",
+        reason: "Multiple severe betrayals invoke divine punishment",
         severity: 2
       };
     }
@@ -56,6 +72,7 @@ export function createRailroadEngine({ gameState, eventBus }) {
     const rails = [
       checkRefusalRails(),
       checkStallRails(),
+      checkCriticalMomentRails(),
       checkRelationshipRails()
     ].filter(Boolean);
 
@@ -78,6 +95,7 @@ export function createRailroadEngine({ gameState, eventBus }) {
     invokeRail,
     checkRefusalRails,
     checkStallRails,
+    checkCriticalMomentRails,
     checkRelationshipRails
   };
 }

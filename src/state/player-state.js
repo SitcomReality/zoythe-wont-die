@@ -41,6 +41,8 @@ export function createPlayerState({ rng }) {
       const rel = this.relationships.get(npcId);
       if (rel) {
         rel.score += delta;
+        // Clamp extreme values (prevent infinite corruption/favor)
+        rel.score = Math.max(-10, Math.min(10, rel.score));
       }
     },
     addToInventory(item) {

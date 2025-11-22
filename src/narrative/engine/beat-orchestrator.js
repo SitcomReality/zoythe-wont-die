@@ -267,7 +267,21 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     // If returning to same beat or no next beat, increment repeat count
     if (!nextBeatId || nextBeatId === currentBeatId) {
       gameState.narrative.incrementBeatRepeatCount();
-      gameState.narrative.incrementBeatRepeatCount(); // Increment urgency too
+      
+      // Only increment urgency if this was NOT an investigation choice
+      // Investigation is legitimate use of time; don't penalize it
+      const isInvestigationChoice = choice.investigationType !== undefined || 
+                                    choice.investigationChoice === true ||
+                                    choice.classification?.includes(CHOICE_CLASSIFICATIONS.INVESTIGATE);
+      
+      if (isInvestigationChoice) {
+        // Reward investigation with exploration score instead of urgency
+        gameState.narrative.explorationScore += 1;
+        gameState.narrative.investigationAttempts += 1;
+      } else {
+        // Only non-investigation repeats increment urgency
+        gameState.narrative.urgencyLevel += 1;
+      }
     } else {
       // Moving to new beat: reset repeat count and urgency
       gameState.narrative.resetBeatRepeatCount();
