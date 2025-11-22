@@ -69,7 +69,7 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
           killerId: gameState.mystery.killerId,
           progress: gameState.mystery.progress
         } : null,
-        terminology,
+        // Removed terminology from emitted prompt context to avoid exposing the full term list to the model/UI
         previousPage: previousPage ? { title: previousPage.title, body: previousPage.body } : null,
         previousChoice: previousChoice ? { label: previousChoice.label, id: previousChoice.id } : null,
         beatId: id
