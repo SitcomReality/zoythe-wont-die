@@ -175,6 +175,26 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
       gameState.narrative.incrementRefusal();
     }
     
+    // Register consequences if they exist in choice
+    if (choice.consequences && gameState.consequenceTracker) {
+      for (const consequence of choice.consequences) {
+        gameState.consequenceTracker.registerConsequence({
+          id: `${choice.id}-consequence-${Date.now()}`,
+          type: consequence.type,
+          sourceChoice: choice.id,
+          sourceBeat: currentBeatId,
+          description: consequence.description,
+          triggerBeat: consequence.triggerBeat || null,
+          triggerCondition: consequence.triggerCondition || null,
+          manifestation: consequence.manifestation || null,
+          severity: consequence.severity || "minor",
+          relatedNpc: consequence.relatedNpc || null,
+          relatedClue: consequence.relatedClue || null,
+          chainNext: consequence.chainNext || null
+        });
+      }
+    }
+    
     // Evaluate state after every choice
     evaluateState();
     

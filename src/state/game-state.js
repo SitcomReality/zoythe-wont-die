@@ -3,12 +3,14 @@ import { createWorldState } from "./world-state.js";
 import { createNarrativeState } from "./narrative-state.js";
 import { HERO_ARCHETYPES, STORY_SCOPE } from "../config/constants.js";
 import { createMemoryContext } from "./memory-context.js";
+import { createConsequenceTracker } from "../systems/consequence-tracker.js";
 
 export function createGameState({ rng, config = {} }) {
   const player = createPlayerState({ rng });
   const world = createWorldState({ rng });
   const narrative = createNarrativeState();
   const memory = createMemoryContext();
+  const consequenceTracker = createConsequenceTracker();
   
   // Apply Config Overrides
   if (config.tone) {
@@ -45,6 +47,7 @@ export function createGameState({ rng, config = {} }) {
     world,
     narrative,
     memory,
+    consequenceTracker,
     mystery: null, // Initialize mystery slot
     config // store initial config
   };
@@ -64,6 +67,11 @@ export function hydrateGameState(data, rng) {
   // Hydrate memory
   if (data.memory) {
     fresh.memory.deserialize(data.memory);
+  }
+  
+  // Hydrate consequences
+  if (data.consequenceTracker) {
+    fresh.consequenceTracker.deserialize(data.consequenceTracker);
   }
   
   // Hydrate mystery if present

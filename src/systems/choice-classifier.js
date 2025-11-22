@@ -1,4 +1,5 @@
 import { CHOICE_CLASSIFICATIONS } from "../config/constants.js";
+import { CONSEQUENCE_TYPES } from "./consequence-tracker.js";
 
 export function classifyChoice(choice) {
   const classifications = new Set();
@@ -60,6 +61,59 @@ export function classifyChoice(choice) {
   }
 
   return Array.from(classifications);
+}
+
+/**
+ * Identify consequence potential of a choice based on classification
+ * @param {string[]} classifications - Choice classifications
+ * @returns {string[]} Consequence types that might apply
+ */
+export function identifyConsequencePotential(classifications) {
+  const consequencePotential = new Set();
+
+  for (const c of classifications) {
+    switch (c) {
+      case CHOICE_CLASSIFICATIONS.BETRAY_ALLY:
+        consequencePotential.add(CONSEQUENCE_TYPES.RELATIONSHIP_SHIFT);
+        consequencePotential.add(CONSEQUENCE_TYPES.REPUTATION_IMPACT);
+        consequencePotential.add(CONSEQUENCE_TYPES.NPC_BEHAVIOR_SHIFT);
+        break;
+      case CHOICE_CLASSIFICATIONS.MERCY:
+        consequencePotential.add(CONSEQUENCE_TYPES.RELATIONSHIP_SHIFT);
+        consequencePotential.add(CONSEQUENCE_TYPES.NPC_BEHAVIOR_SHIFT);
+        break;
+      case CHOICE_CLASSIFICATIONS.CRUELTY:
+        consequencePotential.add(CONSEQUENCE_TYPES.MORAL_CORRUPTION);
+        consequencePotential.add(CONSEQUENCE_TYPES.REPUTATION_IMPACT);
+        break;
+      case CHOICE_CLASSIFICATIONS.INVESTIGATE:
+        consequencePotential.add(CONSEQUENCE_TYPES.INVESTIGATION_REVEAL);
+        consequencePotential.add(CONSEQUENCE_TYPES.CLUE_GENERATION);
+        break;
+      case CHOICE_CLASSIFICATIONS.INTERROGATE:
+        consequencePotential.add(CONSEQUENCE_TYPES.INVESTIGATION_REVEAL);
+        consequencePotential.add(CONSEQUENCE_TYPES.NPC_BEHAVIOR_SHIFT);
+        break;
+      case CHOICE_CLASSIFICATIONS.ACCUSE:
+        consequencePotential.add(CONSEQUENCE_TYPES.SUSPECT_ELIMINATION);
+        consequencePotential.add(CONSEQUENCE_TYPES.INVESTIGATION_BLOCK);
+        break;
+      case CHOICE_CLASSIFICATIONS.SACRIFICE:
+        consequencePotential.add(CONSEQUENCE_TYPES.RELATIONSHIP_SHIFT);
+        consequencePotential.add(CONSEQUENCE_TYPES.MORAL_CORRUPTION);
+        break;
+      case CHOICE_CLASSIFICATIONS.ACCEPT_QUEST:
+        consequencePotential.add(CONSEQUENCE_TYPES.RELATIONSHIP_SHIFT);
+        consequencePotential.add(CONSEQUENCE_TYPES.TIME_PRESSURE);
+        break;
+      case CHOICE_CLASSIFICATIONS.REFUSE_QUEST:
+        consequencePotential.add(CONSEQUENCE_TYPES.INVESTIGATION_BLOCK);
+        consequencePotential.add(CONSEQUENCE_TYPES.REPUTATION_IMPACT);
+        break;
+    }
+  }
+
+  return Array.from(consequencePotential);
 }
 
 export function getChoiceDelta(choice, classifications) {
