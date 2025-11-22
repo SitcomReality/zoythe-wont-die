@@ -3,6 +3,7 @@ import { evaluateArchetype } from "../../../systems/protagonist-archetype.js";
 import { updateWorldTone } from "../../../systems/tone-system.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
 import resurrectionPrompt from "../../../prompts/hero/resurrection.js";
+import { selectResurrectionTwist } from "../../../systems/twist-generator.js";
 
 export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
   const id = "heroJourney:return:resurrection";
@@ -12,7 +13,17 @@ export function registerResurrectionBeat({ beatOrchestrator, gameState }) {
     async enter({ gameState, previousPage, previousChoice }) {
       const didAccuseCorrectly = gameState.narrative.flags["accusationResult"] === "correct";
 
-      const instructions = resurrectionPrompt.replace(/\${accusationResult}/g, didAccuseCorrectly ? "correct" : "incorrect");
+      // NEW: select a resurrection twist based on outcome and mystery state
+      const twist = selectResurrectionTwist({
+        gameState,
+        rng: gameState.rng,
+        didAccuseCorrectly
+      });
+
+      const instructions = resurrectionPrompt({
+        accusationResult: didAccuseCorrectly ? "correct" : "incorrect",
+        twist
+      });
 
       const content = await generateBeatContent({
         gameState,
