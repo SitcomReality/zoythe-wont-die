@@ -51,6 +51,20 @@ Choices:
 - "Call a witness"
 `;
 
+    case "ESCAPE":
+      return `${base}
+Reality is coming apart faster than your investigation.
+Walls of the \${terminology:afterlife} buckle, time skips, and the floor tries to forget it exists.
+You still don't have enough evidence to name ${killerName} with certainty—but if you stay, you may vanish with the rest.
+
+Describe the world collapsing around you as the Interregnum demands a choice between truth and survival.
+
+Choices:
+- "Flee the collapsing court and save yourself" (accept you may never know the full truth)
+- "Stay and cling to the case even as reality tears" (risk being unmade with the mystery)
+- "Try to drag whoever seems most guilty into the falling void with you" (a desperate half-accusation)
+`;
+
     default: // Fallback / Generic
       return `${base}
 The suspects are gathered:

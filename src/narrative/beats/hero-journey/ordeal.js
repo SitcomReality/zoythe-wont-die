@@ -21,7 +21,10 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
       let ordealType = "ACCUSATION";
       
       // Logic for ordeal variation
-      if (urgency >= 5) {
+      if (urgency >= 7) {
+        // Reality is collapsing hard: pure escape scenario
+        ordealType = "ESCAPE";
+      } else if (urgency >= 5) {
         ordealType = "CONFRONTATION";
       } else if (cluesFound < 2) {
         ordealType = "REVELATION";
@@ -81,9 +84,15 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
         correct = true;
         accusationMade = true;
         gameState.narrative.flags["solvedByDeduction"] = false;
+      } else if (ordealType === "ESCAPE") {
+        // Escape path: you fail to formally solve the case here.
+        // You do not make a proper accusation; the mystery remains unresolved going into Resurrection.
+        correct = false;
+        accusationMade = false;
+        gameState.narrative.flags["solvedByDeduction"] = false;
       } else {
         // ACCUSATION or TRIAL - Player choice matters
-        if (text.includes(killer.name.toLowerCase())) {
+        if (killer && text.includes(killer.name.toLowerCase())) {
           correct = true;
           gameState.narrative.flags["solvedByDeduction"] = true;
         } else if (text.includes("don't know") || text.includes("ignorance")) {
