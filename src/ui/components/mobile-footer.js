@@ -1,4 +1,4 @@
-export function createMobileFooter({ root, onHistoryToggle, onDossierToggle }) {
+export function createMobileFooter({ root, onHistoryToggle, onDossierToggle, eventBus }) {
   root.innerHTML = "";
 
   const footer = document.createElement("div");
@@ -12,6 +12,10 @@ export function createMobileFooter({ root, onHistoryToggle, onDossierToggle }) {
   dossierBtn.className = "mobile-footer__btn";
   dossierBtn.innerHTML = "📁 Dossier";
 
+  const menuBtn = document.createElement("button");
+  menuBtn.className = "mobile-footer__btn";
+  menuBtn.innerHTML = "≡ Menu";
+
   historyBtn.addEventListener("click", () => {
     onHistoryToggle();
   });
@@ -20,8 +24,13 @@ export function createMobileFooter({ root, onHistoryToggle, onDossierToggle }) {
     onDossierToggle();
   });
 
+  menuBtn.addEventListener("click", () => {
+    if (eventBus) eventBus.emit("ui:menu:open");
+  });
+
   footer.appendChild(historyBtn);
   footer.appendChild(dossierBtn);
+  footer.appendChild(menuBtn);
   root.appendChild(footer);
 
   return { footer };

@@ -95,7 +95,8 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
       onDossierToggle: () => {
         dossierContainer.classList.toggle("app-dossier--mobile-hidden");
         historyContainer.classList.add("app-history--mobile-hidden"); // Close other
-      }
+      },
+      eventBus
     });
   } else {
     // On Desktop, hide history initially if menu is shown?
@@ -145,7 +146,7 @@ export function mountLayout({ rootSelector = "#app-root", eventBus }) {
       dossierContainer.style.display = "flex";
     }
     
-    statusBar = createStatusBar({ root: statusRoot, gameState });
+    statusBar = createStatusBar({ root: statusRoot, gameState, eventBus });
     statusBar.render();
     
     // Initial render of dossier

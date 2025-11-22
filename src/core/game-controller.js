@@ -19,6 +19,11 @@ export function createGameController({ eventBus, ui }) {
     showMainMenu();
   }
   
+  // Listen for UI menu open requests
+  eventBus.on("ui:menu:open", () => {
+    showMainMenu();
+  });
+
   function showMainMenu() {
     if (loop) loop.stop();
     if (autoSaveInterval) clearInterval(autoSaveInterval);

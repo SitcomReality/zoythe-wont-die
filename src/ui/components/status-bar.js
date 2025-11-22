@@ -1,4 +1,4 @@
-export function createStatusBar({ root, gameState }) {
+export function createStatusBar({ root, gameState, eventBus }) {
   root.innerHTML = "";
 
   const bar = document.createElement("div");
@@ -28,7 +28,23 @@ export function createStatusBar({ root, gameState }) {
     const heroismLevel = Math.max(0, Math.min(5, Math.floor(player.heroism / 2)));
     const heroismDots = "✦".repeat(heroismLevel);
     
+    // Build center content with heroism and a menu button for wider screens
     center.innerHTML = heroismDots ? `<span class="status-bar__heroism" title="Heroism">${heroismDots}</span>` : "";
+    
+    // Add menu button to status center (desktop)
+    const menuBtn = document.createElement("button");
+    menuBtn.textContent = "Menu";
+    menuBtn.style.marginLeft = "10px";
+    menuBtn.style.border = "none";
+    menuBtn.style.background = "transparent";
+    menuBtn.style.color = "var(--accent)";
+    menuBtn.style.cursor = "pointer";
+    menuBtn.style.fontSize = "0.9rem";
+    menuBtn.addEventListener("click", () => {
+      if (eventBus) eventBus.emit("ui:menu:open");
+    });
+    
+    center.appendChild(menuBtn);
     
     // Right: beat progress, current beat name, and urgency indicator
     const pageNum = narrative.beatIndex != null ? narrative.beatIndex + 1 : "?";
