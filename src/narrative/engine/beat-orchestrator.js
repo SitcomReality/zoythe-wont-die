@@ -1,5 +1,5 @@
 import { LOOP_PHASES } from "../../config/constants.js";
-import { classifyChoice, getChoiceDelta, identifyConsequencePotential } from "../../systems/choice-classifier.js";
+import { classifyChoice, getChoiceDelta } from "../../systems/choice-classifier.js";
 import { evaluateArchetype } from "../../systems/protagonist-archetype.js";
 import { updateWorldTone } from "../../systems/tone-system.js";
 
@@ -175,45 +175,25 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
       gameState.narrative.incrementRefusal();
     }
     
-    // --- CONSEQUENCE REGISTRATION ---
-    if (gameState.consequenceTracker) {
-      // 1. Explicit consequences from LLM
-      if (choice.consequences) {
-        for (const consequence of choice.consequences) {
-          gameState.consequenceTracker.registerConsequence({
-            id: `${choice.id}-consequence-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-            type: consequence.type,
-            sourceChoice: choice.id,
-            sourceBeat: currentBeatId,
-            description: consequence.description,
-            triggerBeat: consequence.triggerBeat || null,
-            severity: consequence.severity || "minor"
-          });
-        }
-      }
-
-      // 2. Inferred consequences from classification (Fallback/Systemic)
-      // If no explicit consequences were provided, or to augment them with system mechanics
-      const potentialTypes = identifyConsequencePotential(classifications);
-      
-      // Logic: If we have a potential consequence type that WASN'T explicitly handled, add a generic one
-      const existingTypes = new Set((choice.consequences || []).map(c => c.type));
-      
-      for (const type of potentialTypes) {
-        if (!existingTypes.has(type)) {
-          // Generate a systemic consequence
-          gameState.consequenceTracker.registerConsequence({
-            id: `${choice.id}-sys-${type}-${Date.now()}`,
-            type: type,
-            sourceChoice: choice.id,
-            sourceBeat: currentBeatId,
-            description: `Systemic consequence of ${type} from action "${choice.label}"`,
-            severity: "minor"
-          });
-        }
+    // Register consequences if they exist in choice
+    if (choice.consequences && gameState.consequenceTracker) {
+      for (const consequence of choice.consequences) {
+        gameState.consequenceTracker.registerConsequence({
+          id: `${choice.id}-consequence-${Date.now()}`,
+          type: consequence.type,
+          sourceChoice: choice.id,
+          sourceBeat: currentBeatId,
+          description: consequence.description,
+          triggerBeat: consequence.triggerBeat || null,
+          triggerCondition: consequence.triggerCondition || null,
+          manifestation: consequence.manifestation || null,
+          severity: consequence.severity || "minor",
+          relatedNpc: consequence.relatedNpc || null,
+          relatedClue: consequence.relatedClue || null,
+          chainNext: consequence.chainNext || null
+        });
       }
     }
-    // --- END CONSEQUENCE REGISTRATION ---
     
     // Evaluate state after every choice
     evaluateState();

@@ -20,14 +20,7 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     knownLocations: memory.getLocationsSummary(),
     knownNpcs: memory.getKnownNpcs(),
     unfulfilledPromises: memory.getUnfulfilledPromises(),
-    // Merge memory consequences with tracker consequences for complete picture
-    activeConsequences: gameState.consequenceTracker 
-      ? gameState.consequenceTracker.getUnfulfilledConsequences().map(c => ({
-          description: c.description,
-          type: c.type,
-          severity: c.severity
-        }))
-      : []
+    unfulfilledConsequences: memory.getUnfulfilledConsequences()
   };
 
   // Prepare mystery context (if active)

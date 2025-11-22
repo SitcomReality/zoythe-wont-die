@@ -37,22 +37,12 @@ Valid JSON Schema:
       "label": "string",
       "hint": "string (optional)",
       "classification": ["string"],
-      "effects": { "player": {}, "world": {} },
-      "consequences": [
-        {
-          "type": "string (see types below)",
-          "description": "string",
-          "triggerBeat": "string (optional beat ID)",
-          "severity": "minor|moderate|severe"
-        }
-      ]
+      "effects": { "player": {}, "world": {} }
     }
   ]
 }
 
 Valid Classifications: ${choiceClassifications.join(", ")}.
-Valid Consequence Types: relationshipShift, reputationImpact, investigationBlock, investigationReveal, locationChange, npcBehaviorShift, suspectElimination, clueGeneration, timePressure, moralCorruption.
-
 Include 2-3 choices. If the player input a specific action, try to reflect its consequences in the narrative or choices.
 `;
 }
