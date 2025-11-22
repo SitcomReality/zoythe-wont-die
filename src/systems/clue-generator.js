@@ -169,6 +169,26 @@ export function seedClues({ suspects, killerId, weapon, rng, twistTemplate, deat
     context: "memory"
   });
 
+  // 8. Additional Red Herring(s) to approach ~1:2 ratio
+  const otherInnocents = suspectList.filter(
+    s => s.id !== killerId && (!innocent || s.id !== innocent.id)
+  );
+  if (otherInnocents.length > 0) {
+    const extraInnocent = rng.pick(otherInnocents);
+    const extraHerringId = `clue-herring-${rng.int(1000,9999)}`;
+    addClue({
+      id: extraHerringId,
+      label: "Suspicious Alibi Detail",
+      type: "CIRCUMSTANTIAL",
+      description: `${extraInnocent.name}'s alibi contains a small but worrying inconsistency that seems important, but ultimately points nowhere.`,
+      relatedSuspectIds: [extraInnocent.id],
+      truthValue: false,
+      tier: 1,
+      discoveryMethod: INVESTIGATION_METHODS.SURROUNDINGS,
+      context: "red-herring"
+    });
+  }
+
   return { 
     all: clues, 
     discovered: new Set(), 

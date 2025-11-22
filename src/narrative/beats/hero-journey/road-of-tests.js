@@ -42,7 +42,7 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
           The world \${terminology:glitch}es violently.
           ${isRepeat ? `This is attempt ${beatRepeatCount + 1}. The environment is degrading.` : ""}
           The player has found all currently available clues here.
-          Provide choices to travel to a new location or rest.
+          Provide choices to travel to a new location or rest. At least one of these paths can feel like a tempting but ultimately misleading lead that mainly wastes time (increasing pressure) without revealing new true evidence.
         `;
         gameState.narrative.pendingClueId = null;
       }
@@ -75,7 +75,16 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
       const isPassive = idLower.includes("ignore") || idLower.includes("flee") || idLower.includes("rest") || idLower.includes("leave");
       
       if (pendingClueId && !isPassive) {
+        const clue = gameState.mystery.clues.all.get(pendingClueId);
         gameState.mystery.clues.discovered.add(pendingClueId);
+
+        // If this newly discovered clue is a red herring, treat it as wasted time by nudging urgency upward
+        if (clue && clue.truthValue === false) {
+          gameState.narrative.urgencyLevel = Math.min(
+            gameState.narrative.urgencyLevel + 1,
+            gameState.narrative.urgencyThreshold + 1
+          );
+        }
       }
 
       // Decide whether to advance or stay

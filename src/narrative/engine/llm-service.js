@@ -59,7 +59,9 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
           description: clue.description,
           type: clue.type,
           context: clue.context,
-          hasBeenUsedInChoice: usedSet.has(id)
+          hasBeenUsedInChoice: usedSet.has(id),
+          // Expose red herring status to the model without revealing it in-story
+          isRedHerring: clue.truthValue === false
         };
     }).filter(Boolean);
 

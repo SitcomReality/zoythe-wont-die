@@ -12,6 +12,7 @@ Provide 2-3 choices:
 - Ask a nearby \${terminology:spirit} or echoing presence about the ${location} (Social) -> might reveal context.
 - Ignore it / focus on survival (Caution) -> miss this clue but conserve energy.
 
+At least one choice may follow a tempting but ultimately misleading lead (a red herring) that wastes time or adds confusion without breaking the core solvability of the mystery.
 If iteration > 1, note that the ${location} has shifted or degraded.
 `;
 
