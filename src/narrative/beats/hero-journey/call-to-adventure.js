@@ -34,7 +34,7 @@ export function registerCallToAdventureBeat({ beatOrchestrator, eventBus }) {
 
       if (!isRepeat) {
         // First visit: basic scene description
-        beatInstructions = callToAdventurePrompt.replace("${weapon}", weapon);
+        beatInstructions = callToAdventurePrompt({ weapon, terminology });
         additionalContext = "This is the protagonist's first moment of awareness. Present the immediate scene.";
       } else {
         // Repeat visit: player is investigating further

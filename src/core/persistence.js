@@ -42,7 +42,8 @@ export function saveGame(gameState) {
             ...gameState.mystery.clues,
             all: serializeMap(gameState.mystery.clues.all),
             discovered: serializeSet(gameState.mystery.clues.discovered),
-            knownSuspects: serializeSet(gameState.mystery.clues.knownSuspects)
+            knownSuspects: serializeSet(gameState.mystery.clues.knownSuspects),
+            investigationMethods: serializeSet(gameState.mystery.clues.investigationMethods || new Set())
         }
       } : null,
       timestamp: Date.now()
@@ -84,6 +85,9 @@ export function loadGame() {
             }
             if (data.mystery.clues.knownSuspects) {
                 data.mystery.clues.knownSuspects = deserializeSet(data.mystery.clues.knownSuspects);
+            }
+            if (data.mystery.clues.investigationMethods) {
+                data.mystery.clues.investigationMethods = deserializeSet(data.mystery.clues.investigationMethods);
             }
         }
     }
