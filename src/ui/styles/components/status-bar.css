@@ -41,6 +41,18 @@
   flex: 0 0 auto;
 }
 
+/* Hide desktop-only menu button on smaller screens */
+.status-bar__menu-btn {
+  display: inline-block;
+}
+
+/* Hide menu button when mobile footer is visible (mobile breakpoint) */
+@media (max-width: 768px) {
+  .status-bar__menu-btn {
+    display: none;
+  }
+}
+
 @media (max-width: 480px) {
   .status-bar {
     padding: 0 8px;

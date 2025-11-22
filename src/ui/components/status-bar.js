@@ -34,6 +34,7 @@ export function createStatusBar({ root, gameState, eventBus }) {
     // Add menu button to status center (desktop)
     const menuBtn = document.createElement("button");
     menuBtn.textContent = "Menu";
+    menuBtn.className = "status-bar__menu-btn";
     menuBtn.style.marginLeft = "10px";
     menuBtn.style.border = "none";
     menuBtn.style.background = "transparent";
