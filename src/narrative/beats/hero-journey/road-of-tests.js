@@ -147,8 +147,6 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
       const aiWantsAdvance = gameState.narrative.aiShouldAdvance !== false;
       
       // If AI says stay and we haven't hit clue threshold, return null to stay
-      // But if we found a clue this turn, maybe prompt to move or stay? 
-      // For now, standard logic:
       if (!aiWantsAdvance) {
         return null;
       }
