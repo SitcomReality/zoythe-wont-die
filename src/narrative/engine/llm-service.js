@@ -110,11 +110,12 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     beatRepeatCount: narrative.beatRepeatCount
   };
 
-  // Build system prompt using external template
+  // Build system prompt with scope included
   const systemPrompt = buildSystemPrompt({
     terminology,
     worldTone: world.tone,
-    choiceClassifications: Object.values(CHOICE_CLASSIFICATIONS)
+    choiceClassifications: Object.values(CHOICE_CLASSIFICATIONS),
+    scope: mystery?.scope || world.scope || "regional"
   });
 
   // Substitute terminology in instructions

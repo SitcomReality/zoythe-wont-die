@@ -42,21 +42,23 @@ export function createGameController({ eventBus, ui }) {
     
     gameState = createGameState({ rng, config });
     
-    // Mystery setup
-    gameState.mystery = createMystery({ rng });
+    // Mystery setup with scope awareness
+    gameState.mystery = createMystery({ rng, scope: gameState.world.scope });
     
-    // Add death location to memory context for narrative coherence
+    // Add death location to memory context
     if (gameState.mystery && gameState.mystery.deathScenario) {
       gameState.memory.addLocation(gameState.mystery.deathScenario.location, {
         beatContext: "Call to Adventure",
         isDeathLocation: true,
-        deathScenario: gameState.mystery.deathScenario.type
+        deathScenario: gameState.mystery.deathScenario.type,
+        scope: gameState.world.scope
       });
     }
     
     const npcRoster = generateNPCRoster({ 
       rng, 
-      roles: [NPC_ROLES.MENTOR, NPC_ROLES.ALLY] 
+      roles: [NPC_ROLES.MENTOR, NPC_ROLES.ALLY],
+      scope: gameState.world.scope
     });
     gameState.npcRoster = npcRoster;
     

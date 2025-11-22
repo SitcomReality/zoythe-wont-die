@@ -19,7 +19,7 @@ export function createMystery({ rng, scope = "regional" }) {
   while (attempts < MAX_ATTEMPTS) {
     attempts++;
     
-    // 1. Generate Death Scenario
+    // 1. Generate Death Scenario with scope awareness
     const deathScenario = generateDeathScenario({ rng, scope });
 
     // 2. Select Twist
@@ -39,13 +39,10 @@ export function createMystery({ rng, scope = "regional" }) {
     };
 
     // 4. Generate Weapon
-    // Use scenario's weapon preference if applicable
     let weaponTemplate = null;
     if (deathScenario.weapon) {
-      // Scenario specifies weapon type; find matching template or create one
       weaponTemplate = WEAPONS.find(w => w.name.toLowerCase().includes(deathScenario.weapon.toLowerCase()));
       if (!weaponTemplate) {
-        // Fallback: generic weapon matching scenario
         weaponTemplate = {
           name: deathScenario.weapon,
           type: "unknown",
@@ -53,17 +50,15 @@ export function createMystery({ rng, scope = "regional" }) {
         };
       }
     } else if (deathScenario.weaponVisible) {
-      // Only auto-select weapon if scenario indicates it should be visible
       weaponTemplate = rng.pick(WEAPONS);
     }
-    // else: deathScenario has no physical weapon; leave weaponTemplate null
 
     const weapon = weaponTemplate ? {
       id: `weapon-${rng.int(100,999)}`,
       ...weaponTemplate,
       description: `A lethal artifact. ${weaponTemplate.linkToDeathGod}`,
       discoveryTier: deathScenario.investigationLevel + 1,
-      discoverable: !deathScenario.weaponVisible // Mark as discoverable if not immediately visible
+      discoverable: !deathScenario.weaponVisible
     } : {
       id: `weapon-unknown`,
       name: "Unknown",
@@ -71,33 +66,34 @@ export function createMystery({ rng, scope = "regional" }) {
       description: "The weapon used remains a mystery.",
       linkToDeathGod: "Unknown connection to your death.",
       discoveryTier: deathScenario.investigationLevel + 2,
-      discoverable: true // Always discoverable if unknown
+      discoverable: true
     };
 
-    // 5. Generate Suspects
-    const suspects = generateCohort({ rng, twistTemplate: twist });
+    // 5. Generate Suspects with scope awareness
+    const suspects = generateCohort({ rng, scope, twistTemplate: twist });
 
     // 6. Select Killer
     const suspectIds = Array.from(suspects.keys());
-    if (suspectIds.length === 0) continue; // Retry if no suspects
+    if (suspectIds.length === 0) continue;
     
     const killerId = rng.pick(suspectIds);
     const killer = suspects.get(killerId);
     if (killer) {
-      killer.alibi.isTrue = false; // Killer lies
+      killer.alibi.isTrue = false;
     }
 
     // 7. Seed Clues
-    const clueData = seedClues({ suspects, killerId, weapon, rng, twistTemplate: twist });
+    const clueData = seedClues({ suspects, killerId, weapon, rng, twistTemplate: twist, deathScenario });
 
     const mystery = {
       twist,
       victim,
       weapon,
       killerId,
-      suspects, // Map
-      clues: clueData, // { all: Map, discovered: Set, knownSuspects: Set }
-      deathScenario, // Store the scenario
+      suspects,
+      clues: clueData,
+      deathScenario,
+      scope, // Store scope on mystery for context
       progress: {
         accusationMade: false,
         correctKillerAccused: false,
@@ -106,7 +102,6 @@ export function createMystery({ rng, scope = "regional" }) {
       }
     };
 
-    // 8. Validate
     if (ensureSolvable(mystery)) {
       return mystery;
     }

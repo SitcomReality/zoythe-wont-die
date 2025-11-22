@@ -267,15 +267,37 @@ const LOCATION_POOLS = {
   ]
 };
 
+// Add scope-appropriate scenario filtering
+const SCENARIO_SCOPE_MAPPING = {
+  [DEATH_SCENARIOS.WEAPON_EMBEDDED]: ["intimate", "regional", "national", "cosmic"],
+  [DEATH_SCENARIOS.FALL]: ["intimate", "regional", "national"],
+  [DEATH_SCENARIOS.POISON]: ["regional", "national", "cosmic"],
+  [DEATH_SCENARIOS.DROWNING]: ["intimate", "regional"],
+  [DEATH_SCENARIOS.RITUAL]: ["regional", "national", "cosmic"],
+  [DEATH_SCENARIOS.STRANGLING]: ["intimate", "regional"],
+  [DEATH_SCENARIOS.BURNING]: ["regional", "national"],
+  [DEATH_SCENARIOS.DIVINE_DISSOLUTION]: ["cosmic"]
+};
+
 /**
- * Generate a death scenario for a mystery
+ * Generate a death scenario appropriate to scope
  * @param {Object} rng - RNG instance
  * @param {string} scope - Story scope (intimate, regional, national, cosmic)
  * @returns {Object} Death scenario with all details
  */
 export function generateDeathScenario({ rng, scope = "regional" }) {
-  // Pick random scenario type
-  const scenarioType = rng.pick(Object.values(DEATH_SCENARIOS));
+  // Filter scenarios by scope
+  const availableTypes = Object.values(DEATH_SCENARIOS).filter(type => {
+    const allowedScopes = SCENARIO_SCOPE_MAPPING[type] || [];
+    return allowedScopes.includes(scope);
+  });
+  
+  if (availableTypes.length === 0) {
+    // Fallback to any scenario
+    availableTypes.push(...Object.values(DEATH_SCENARIOS));
+  }
+
+  const scenarioType = rng.pick(availableTypes);
   const details = SCENARIO_DETAILS[scenarioType];
 
   // Pick location based on scope
@@ -292,6 +314,7 @@ export function generateDeathScenario({ rng, scope = "regional" }) {
     type: scenarioType,
     name: details.name,
     location,
+    scope, // Store scope on scenario
     initialVisibility: details.initialVisibility,
     weaponVisible: details.weaponVisible,
     methodVisible: details.methodVisible,

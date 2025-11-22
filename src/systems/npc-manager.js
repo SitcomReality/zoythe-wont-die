@@ -25,14 +25,14 @@ const NPC_ROLE_TEMPLATES = {
   ]
 };
 
-export function generateNPC({ rng, role }) {
+export function generateNPC({ rng, role, scope = "regional" }) {
   const templates = NPC_ROLE_TEMPLATES[role] || [];
   if (templates.length === 0) {
     return null;
   }
 
   const template = rng.pick(templates);
-  const name = generateUniqueName(rng);
+  const name = generateUniqueName(rng, new Set(), scope);
   const descriptor = generateTraitDescription(rng, name);
 
   return {
@@ -43,16 +43,17 @@ export function generateNPC({ rng, role }) {
     type: template.initialType,
     score: 0,
     met: false,
-    flags: {}
+    flags: {},
+    scope
   };
 }
 
-export function generateNPCRoster({ rng, roles = [] }) {
+export function generateNPCRoster({ rng, roles = [], scope = "regional" }) {
   const roster = new Map();
   const usedNames = new Set();
 
   for (const role of roles) {
-    const npc = generateNPC({ rng, role });
+    const npc = generateNPC({ rng, role, scope });
     if (npc) {
       roster.set(npc.id, npc);
     }
