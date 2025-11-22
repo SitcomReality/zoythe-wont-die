@@ -1,25 +1,48 @@
 # Phase 3: Logic-Driven Prompts
-**Goal:** Remove conditional instructions from prompts ("If X, do Y") and replace them with explicit, state-derived instructions.
+
+**Goal:** Remove conditional instructions from prompts ("If X, do Y") and replace them with explicit, state-derived instructions. The game code decides what is true; the AI is told what to describe.
+
+---
 
 ## 1. Prologue State Machine (`src/narrative/beats/hero-journey/prologue.js`)
 
-*   **Issue:** Prologue loops "Open eyes" -> "Stand up" -> "Open eyes".
-*   **Fix:** internal beat state tracking.
-    ```javascript
-    // Inside enter():
-    let stage = gameState.narrative.flags['prologueStage'] || 0;
-    
-    let instruction = "";
-    if (stage === 0) {
-       instruction = "Describe the sensation of waking up dead. The player cannot move yet.";
-       // Choice: "Open your eyes"
-    } else if (stage === 1) {
-       instruction = "The player opens their eyes. Describe the fractured sky. They are lying on cold stone.";
-       // Choice: "Stand up"
-    }
-    // etc.
-    gameState.narrative.flags['prologueStage'] = stage + 1;
-    ```
+**Problem:** The Prologue can loop "Open your eyes" → "Stand up" → "Open your eyes" again because the AI decides the micro-state.
+
+**Fix:** Use an internal stage counter stored in `gameState.narrative.flags['prologueStage']` and construct a concrete instruction for each stage.
+
+```javascript
+async enter({ gameState, terminology, previousPage, previousChoice }) {
+  let stage = gameState.narrative.flags["prologueStage"] || 0;
+  let instruction = "";
+
+  if (stage === 0) {
+    instruction = `
+This is the very first moment of awareness.
+You are dead, but not gone. You cannot move yet.
+Describe the sensation of waking up dead with eyes closed.
+Do NOT let the player stand; the only available action is to open their eyes.
+Provide exactly one choice: "Open your eyes."
+`;
+  } else if (stage === 1) {
+    instruction = `
+Your eyes open. The fractured sky and the hard stone beneath you come into focus.
+Describe the environment in concrete detail. You are still lying down.
+Provide exactly one choice: "Stand up."
+`;
+  } else {
+    instruction = `
+You are standing in the broken afterlife, newly aware.
+Reinforce the central mystery: you are dead, you don't remember who killed you.
+Provide one choice that moves into the Call to Adventure beat (e.g. "Look at your body").
+`;
+  }
+
+  gameState.narrative.flags["prologueStage"] = stage + 1;
+
+  const content = await generateBeatContent({ ... });
+  // Override content.choices with the explicit shape described above.
+}
+```
 
 ## 2. Dynamic Call to Adventure (`src/narrative/beats/hero-journey/call-to-adventure.js`)
 

@@ -1,0 +1,9 @@
+let combatText = "";
+if (options.isCombat) {
+  combatText = `
+COMBAT STYLE:
+- Keep action clear and readable.
+- Avoid tactical grids or rules text; this is narrative combat.
+- Choices should focus on intent ("press the attack", "fall back", "protect someone") not dice mechanics.`;
+}
+
