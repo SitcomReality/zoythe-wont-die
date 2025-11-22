@@ -1,4 +1,6 @@
 import { NPC_ROLES } from "../config/constants.js";
+import { generateUniqueName } from "./name-generator.js";
+import { generateTraitDescription, selectTrait } from "./trait-library.js";
 
 const SUSPECT_TEMPLATES = [
   { 
@@ -28,8 +30,6 @@ const SUSPECT_TEMPLATES = [
   }
 ];
 
-const NAMES = ["Kael", "Mira", "Zara", "Morglet", "Corvus", "Thalia", "Vex", "Orion", "Lyra", "Darius"];
-
 export function generateCohort({ rng, twistTemplate }) {
   const suspects = new Map();
   const count = 4; // Generate 4 suspects
@@ -43,14 +43,8 @@ export function generateCohort({ rng, twistTemplate }) {
   }
   
   templates.forEach((tmpl, idx) => {
-    let name = rng.pick(NAMES);
-    // Simple retry for uniqueness
-    let attempts = 0;
-    while(usedNames.has(name) && attempts < 10) {
-      name = rng.pick(NAMES);
-      attempts++;
-    }
-    usedNames.add(name);
+    const name = generateUniqueName(rng, usedNames);
+    const descriptor = generateTraitDescription(rng, name);
 
     const id = `suspect-${idx}-${name.toLowerCase()}`;
     
@@ -60,6 +54,7 @@ export function generateCohort({ rng, twistTemplate }) {
     suspects.set(id, {
       id,
       name,
+      descriptor,
       role: tmpl.role,
       motive: tmpl.motive,
       suspicionLevel: tmpl.baseSuspicion,
