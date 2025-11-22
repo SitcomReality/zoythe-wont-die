@@ -10,7 +10,7 @@ export default function buildSystemPrompt({ terminology, worldTone, choiceClassi
   
   // Use concrete setting synopsis if available
   const settingContext = setting 
-    ? `SETTING: ${setting.synopsis}\nLOCATION: ${setting.primaryLocation}` 
+    ? `SETTING: ${setting.synopsis}\nLOCATION: ${setting.primaryLocation}\nDIVINE CONTEXT: ${setting.divineContext}` 
     : `SETTING: A generic fantasy location appropriate for a ${scope} scope.`;
 
   let prompt = `
