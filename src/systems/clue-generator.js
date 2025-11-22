@@ -131,13 +131,15 @@ export function seedClues({ suspects, killerId, weapon, rng, twistTemplate, deat
     });
   }
 
-  // 6. Generic Atmosphere Clue
+  // 6. Generic Atmosphere Clue (now location-aware)
   const atmClueId = `clue-atm-${rng.int(1000,9999)}`;
+  const deathScenarioName = deathScenario ? deathScenario.name : "unknown location";
+  const locationReference = deathScenario?.location ? ` near ${deathScenario.location}` : "";
   addClue({
     id: atmClueId,
     label: "Strange Residue",
     type: "PHYSICAL",
-    description: "The area reeks of burnt ozone and regret.",
+    description: `The area${locationReference} reeks of burnt ozone and regret.`,
     relatedSuspectIds: [],
     truthValue: true,
     tier: 1,

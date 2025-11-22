@@ -42,13 +42,17 @@ export function createGameController({ eventBus, ui }) {
     
     gameState = createGameState({ rng, config });
     
-    // Legacy setup (removed macguffin generator). Keep homeThreat empty unless other systems set it.
-    // gameState.world.homeThreat = macGuffinData.threat;
-    // gameState.world.primaryMacGuffin = macGuffinData.primary;
-    // gameState.world.backupMacGuffin = macGuffinData.backup;
-    
     // Mystery setup
     gameState.mystery = createMystery({ rng });
+    
+    // Add death location to memory context for narrative coherence
+    if (gameState.mystery && gameState.mystery.deathScenario) {
+      gameState.memory.addLocation(gameState.mystery.deathScenario.location, {
+        beatContext: "Call to Adventure",
+        isDeathLocation: true,
+        deathScenario: gameState.mystery.deathScenario.type
+      });
+    }
     
     const npcRoster = generateNPCRoster({ 
       rng, 

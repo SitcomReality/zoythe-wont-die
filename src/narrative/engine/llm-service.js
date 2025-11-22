@@ -46,6 +46,8 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
 
     mysteryContext = {
       victim: mystery.victim.name,
+      deathLocation: mystery.deathScenario?.location || "unknown",
+      deathScenarioType: mystery.deathScenario?.type || "unknown",
       knownSuspects,
       knownClues,
       progress: mystery.progress
