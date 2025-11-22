@@ -4,7 +4,6 @@ import roadOfTestsPrompt from "../../../prompts/hero/roadOfTests.js";
 
 export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
   const firstTrialId = "heroJourney:tests:firstTrial";
-  const urgentTrialId = "heroJourney:tests:urgentTrial"; // Kept for rails
   
   // Helper to find an undiscovered clue
   function getUndiscoveredClue(mystery) {
@@ -20,25 +19,29 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
   // The Investigation Beat
   const investigationBeat = {
     id: firstTrialId,
-    async enter({ gameState, rng, beatRepeatCount, previousPage, previousChoice }) {
+    async enter({ gameState, beatRepeatCount, previousPage, previousChoice }) {
       const clue = getUndiscoveredClue(gameState.mystery);
-      
-      // Vary instructions based on repetition
-      let instructions = "";
       const isRepeat = beatRepeatCount > 0;
+      const location = gameState.mystery?.deathScenario?.location || "the void";
+      
+      let instructions = "";
       
       if (clue) {
-        instructions = roadOfTestsPrompt
-          .replace(/\${clue.label}/g, clue.label)
-          .replace(/\${clue.description}/g, clue.description)
-          .replace(/\${iteration}/g, String(beatRepeatCount + 1));
+        // Use the dynamic prompt function with specific details (Step 3.3)
+        // and terminology tags (Step 3.2)
+        instructions = roadOfTestsPrompt({
+          iteration: beatRepeatCount + 1,
+          clue,
+          location
+        });
         
         gameState.narrative.pendingClueId = clue.id;
       } else {
         instructions = `
-          This is a transition scene. The trail has gone cold for a moment.
-          The world glitches violently.
+          This is a transition scene in the ${location}. The trail has gone cold for a moment.
+          The world \${terminology:glitch}es violently.
           ${isRepeat ? `This is attempt ${beatRepeatCount + 1}. The environment is degrading.` : ""}
+          The player has found all currently available clues here.
           Provide choices to travel to a new location or rest.
         `;
         gameState.narrative.pendingClueId = null;
@@ -68,7 +71,8 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
     applyChoice(choice, { gameState }) {
       // Check if choice leads to clue discovery
       const { pendingClueId } = gameState.narrative;
-      const isPassive = choice.id.includes("ignore") || choice.id.includes("flee") || choice.id.includes("rest");
+      const idLower = choice.id.toLowerCase();
+      const isPassive = idLower.includes("ignore") || idLower.includes("flee") || idLower.includes("rest") || idLower.includes("leave");
       
       if (pendingClueId && !isPassive) {
         gameState.mystery.clues.discovered.add(pendingClueId);
@@ -76,9 +80,10 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
 
       // Decide whether to advance or stay
       const cluesFound = gameState.mystery.clues.discovered.size;
+      const totalClues = gameState.mystery.clues.all.size;
       
-      // After 3 clues, advance to Ordeal
-      if (cluesFound >= 3) {
+      // After finding enough clues (majority), advance to Ordeal
+      if (cluesFound >= Math.max(3, Math.ceil(totalClues * 0.6))) {
         return "heroJourney:ordeal:heartOfInterregnum";
       }
 
@@ -86,8 +91,16 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
       const aiWantsAdvance = gameState.narrative.aiShouldAdvance !== false;
       
       // If AI says stay and we haven't hit clue threshold, return null to stay
+      // But if we found a clue this turn, maybe prompt to move or stay? 
+      // For now, standard logic:
       if (!aiWantsAdvance) {
         return null;
+      }
+
+      // If we have no pending clue (trail cold), we probably should advance or loop explicitly
+      if (!pendingClueId) {
+         // If no clues left, force advance
+         return "heroJourney:ordeal:heartOfInterregnum";
       }
 
       // Otherwise, return null to stay in this beat (will repeat with new iteration count)
@@ -96,8 +109,5 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
   };
 
   beatOrchestrator.registerBeat(firstTrialId, investigationBeat);
-  
-  // Re-register others if needed, but mainly we want the loop to be investigation focused now.
-  // We'll map the urgent trial to this one or a similar variant later.
 }
 
