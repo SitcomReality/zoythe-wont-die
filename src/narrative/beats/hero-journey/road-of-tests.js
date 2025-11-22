@@ -1,6 +1,7 @@
 import { LOOP_PHASES, CHOICE_CLASSIFICATIONS } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
 import roadOfTestsPrompt from "../../../prompts/hero/roadOfTests.js";
+import { generateInterregnumEffect } from "../../../systems/interregnum-effects.js";
 
 export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
   const firstTrialId = "heroJourney:tests:firstTrial";
@@ -16,6 +17,22 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
     return mystery.clues.all.get(id);
   }
 
+  // Helper to find a relevant NPC to encounter
+  function getEncounterNpc(gameState) {
+    if (!gameState.npcRoster) return null;
+    const roster = Array.from(gameState.npcRoster.values());
+    
+    // Prioritize unmet NPCs to flesh out the cast
+    const unmet = roster.filter(n => !n.met);
+    if (unmet.length > 0) {
+      return gameState.rng.pick(unmet);
+    }
+    
+    // Otherwise pick anyone except the killer (unless we want to hint at them)
+    // For now, just random pick to keep world alive
+    return gameState.rng.pick(roster);
+  }
+
   // The Investigation Beat
   const investigationBeat = {
     id: firstTrialId,
@@ -24,6 +41,33 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
       const isRepeat = beatRepeatCount > 0;
       const location = gameState.mystery?.deathScenario?.location || "the void";
       
+      // 1. Atmosphere Check (High Urgency = Bad Weather)
+      let atmosphericEffect = null;
+      if (gameState.narrative.urgencyLevel >= 2) {
+        // Check if world already has active effects, otherwise generate ephemeral one
+        if (gameState.world.activeEffects.length > 0) {
+          atmosphericEffect = gameState.world.activeEffects[gameState.world.activeEffects.length - 1];
+        } else {
+          // Generate a temporary effect for this scene based on faction context if possible
+          // We assume faction is unknown or generic here, but could pull from mystery suspects
+          atmosphericEffect = generateInterregnumEffect({ rng: gameState.rng, severity: Math.min(3, Math.floor(gameState.narrative.urgencyLevel / 2)) });
+        }
+      }
+
+      // 2. NPC Encounter Check (Random chance or if clue relates to them)
+      // 30% chance of random encounter, or higher if clue is related
+      let npc = null;
+      if (gameState.rng.next() < 0.4) {
+        npc = getEncounterNpc(gameState);
+        if (npc) {
+          // Mark as met
+          if (!npc.met) {
+            npc.met = true;
+            gameState.player.addRelationship(npc);
+          }
+        }
+      }
+
       let instructions = "";
       
       if (clue) {
@@ -32,7 +76,9 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
         instructions = roadOfTestsPrompt({
           iteration: beatRepeatCount + 1,
           clue,
-          location
+          location,
+          atmosphericEffect,
+          npc
         });
         
         gameState.narrative.pendingClueId = clue.id;
@@ -40,6 +86,7 @@ export function registerRoadOfTestsBeat({ beatOrchestrator, gameState, rng }) {
         instructions = `
           This is a transition scene in the ${location}. The trail has gone cold for a moment.
           The world \${terminology:glitch}es violently.
+          ${atmosphericEffect ? `Effect active: ${atmosphericEffect.name}.` : ""}
           ${isRepeat ? `This is attempt ${beatRepeatCount + 1}. The environment is degrading.` : ""}
           The player has found all currently available clues here.
           Provide choices to travel to a new location or rest. At least one of these paths can feel like a tempting but ultimately misleading lead that mainly wastes time (increasing pressure) without revealing new true evidence.
