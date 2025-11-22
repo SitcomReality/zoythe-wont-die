@@ -16,7 +16,14 @@ const TWIST_DEFINITIONS = {
       "The mentor calmly explains why they had to kill you, as if it were obvious.",
       "You notice a tiny, familiar gesture in the killer that only your closest ally makes.",
       "An old promise or comforting phrase is repeated by the killer, word for word."
-    ]
+    ],
+    foreshadowing: {
+      id: "foreshadow:resurrection:companion_betrayal",
+      type: "resurrectionTwist",
+      summary: "Someone close to you is hiding something dangerous.",
+      detail: "Seed small moments where a companion or mentor seems evasive, contradicts themselves, or appears at scenes they shouldn't logically be in. Never state outright that they are the killer; just let their reliability feel slightly off.",
+      strength: "subtle"
+    }
   },
   [RESURRECTION_TWISTS.SELF_DEFENSE]: {
     label: "Self-Defense Turned Tragedy",
@@ -26,7 +33,14 @@ const TWIST_DEFINITIONS = {
       "Fragments of memory show you lunging first, weapon raised.",
       "An NPC shows you a wound you gave them shortly before you died.",
       "You recall begging someone to 'do it' as you lost control."
-    ]
+    ],
+    foreshadowing: {
+      id: "foreshadow:resurrection:self_defense",
+      type: "resurrectionTwist",
+      summary: "Your own actions on the night of your death were more aggressive than you remember.",
+      detail: "Drop hints that you had a temper, made threats, or were planning something reckless before you died. Let NPCs react to you with a mix of fear and guilt.",
+      strength: "moderate"
+    }
   },
   [RESURRECTION_TWISTS.NECESSARY_SACRIFICE]: {
     label: "Necessary Sacrifice",
@@ -36,7 +50,14 @@ const TWIST_DEFINITIONS = {
       "Visions of worlds that would have burned if you had lived.",
       "A divine ledger shows your name balancing an apocalyptic equation.",
       "The killer weeps, insisting they had no choice."
-    ]
+    ],
+    foreshadowing: {
+      id: "foreshadow:resurrection:necessary_sacrifice",
+      type: "resurrectionTwist",
+      summary: "Someone keeps insisting that some losses are 'necessary' for the greater good.",
+      detail: "Let conversations and clues reference looming catastrophes, hard choices, and talk of 'acceptable losses'. A few NPCs might treat your death with an odd air of inevitability.",
+      strength: "subtle"
+    }
   },
   [RESURRECTION_TWISTS.MISTAKEN_IDENTITY]: {
     label: "Mistaken Identity",
@@ -46,7 +67,14 @@ const TWIST_DEFINITIONS = {
       "The killer insists they were aiming for another soul entirely.",
       "You see your own face flicker into another's in the divine reflection.",
       "A swapped token, cloak, or sigil marks you as the wrong target."
-    ]
+    ],
+    foreshadowing: {
+      id: "foreshadow:resurrection:mistaken_identity",
+      type: "resurrectionTwist",
+      summary: "You keep being confused with someone else, or carrying things that don't quite feel like yours.",
+      detail: "Include small mix-ups: NPCs call you by the wrong name, react as if they expected someone else, or notice that your belongings don't match your life. Drop one or two object-based hints (cloak, sigil, token).",
+      strength: "subtle"
+    }
   },
   [RESURRECTION_TWISTS.DIVINE_PAWN]: {
     label: "Divine Pawn",
@@ -56,7 +84,14 @@ const TWIST_DEFINITIONS = {
       "A divine fragment admits it moved everyone like game pieces.",
       "Constellations rearrange to show you as a pawn on a board.",
       "A chorus of dead gods debates whether your sacrifice was 'worth the narrative'."
-    ]
+    ],
+    foreshadowing: {
+      id: "foreshadow:resurrection:divine_pawn",
+      type: "resurrectionTwist",
+      summary: "Cosmic forces keep taking an unusual interest in your tiny, messy murder.",
+      detail: "Let environments, minor NPCs, or strange omens suggest that gods are watching: repeating symbols, whispers about 'the game', or coincidences that feel too scripted.",
+      strength: "moderate"
+    }
   },
   [RESURRECTION_TWISTS.NONE]: {
     label: "No Further Twist",
@@ -66,13 +101,15 @@ const TWIST_DEFINITIONS = {
       "You simply accept the truth and decide what to do with it.",
       "There are no extra masks; everyone was exactly as they appeared.",
       "The only twist is that, for once, there is no twist."
-    ]
+    ],
+    foreshadowing: null
   }
 };
 
 /**
  * Select a resurrection twist based on accusation correctness, mystery twist, and RNG.
  * Stores the chosen twist type on narrative.flags.resurrectionTwistType for later reference.
+ * Also registers foreshadowing needs for the chosen twist, if applicable.
  * @param {Object} params
  * @param {Object} params.gameState
  * @param {Object} params.rng
@@ -130,6 +167,19 @@ export function selectResurrectionTwist({ gameState, rng, didAccuseCorrectly }) 
 
   // Persist twist type for later reference / epilogue integration
   gameState.narrative.flags["resurrectionTwistType"] = chosenType;
+
+  // Register foreshadowing need for this twist, if defined and tracker available
+  if (gameState.foreshadowingTracker && def.foreshadowing) {
+    gameState.foreshadowingTracker.registerNeed({
+      id: def.foreshadowing.id,
+      type: def.foreshadowing.type,
+      summary: def.foreshadowing.summary,
+      detail: def.foreshadowing.detail,
+      // We don't lock to specific beats yet; let Phase 4 later steps refine targeting.
+      targetBeats: null,
+      strength: def.foreshadowing.strength
+    });
+  }
 
   return {
     type: chosenType,

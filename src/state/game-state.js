@@ -4,6 +4,7 @@ import { createNarrativeState } from "./narrative-state.js";
 import { HERO_ARCHETYPES, STORY_SCOPE } from "../config/constants.js";
 import { createMemoryContext } from "./memory-context.js";
 import { createConsequenceTracker } from "../systems/consequence-tracker.js";
+import { createForeshadowingTracker } from "../systems/foreshadowing-tracker.js";
 
 export function createGameState({ rng, config = {} }) {
   const player = createPlayerState({ rng });
@@ -11,6 +12,7 @@ export function createGameState({ rng, config = {} }) {
   const narrative = createNarrativeState();
   const memory = createMemoryContext();
   const consequenceTracker = createConsequenceTracker();
+  const foreshadowingTracker = createForeshadowingTracker();
   
   // Apply Config Overrides
   if (config.tone) {
@@ -48,6 +50,7 @@ export function createGameState({ rng, config = {} }) {
     narrative,
     memory,
     consequenceTracker,
+    foreshadowingTracker,
     mystery: null, // Initialize mystery slot
     config // store initial config
   };
@@ -72,6 +75,11 @@ export function hydrateGameState(data, rng) {
   // Hydrate consequences
   if (data.consequenceTracker) {
     fresh.consequenceTracker.deserialize(data.consequenceTracker);
+  }
+  
+  // Hydrate foreshadowing
+  if (data.foreshadowingTracker) {
+    fresh.foreshadowingTracker.deserialize(data.foreshadowingTracker);
   }
   
   // Hydrate mystery if present

@@ -33,6 +33,9 @@ export function saveGame(gameState) {
       },
       memory: gameState.memory.serialize(),
       consequenceTracker: gameState.consequenceTracker.serialize(),
+      foreshadowingTracker: gameState.foreshadowingTracker
+        ? gameState.foreshadowingTracker.serialize()
+        : [],
       npcRoster: serializeMap(gameState.npcRoster),
       // Serialize Mystery
       mystery: gameState.mystery ? {

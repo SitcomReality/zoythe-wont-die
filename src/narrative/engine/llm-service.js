@@ -30,6 +30,17 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
       : []
   };
 
+  // Prepare foreshadowing context
+  const pendingForeshadowing = gameState.foreshadowingTracker
+    ? gameState.foreshadowingTracker.getPendingForBeat(beatId).map(f => ({
+        id: f.id,
+        type: f.type,
+        summary: f.summary,
+        detail: f.detail,
+        strength: f.strength
+      }))
+    : [];
+
   // Prepare mystery context (if active)
   let mysteryContext = null;
   if (mystery) {
@@ -72,6 +83,9 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     },
     memory: memorySnapshot,
     mystery: mysteryContext,
+    foreshadowing: {
+      pending: pendingForeshadowing
+    },
     history: recentHistory,
     previousPage: previousPage ? {
       title: previousPage.title,
@@ -101,6 +115,11 @@ Current State: ${JSON.stringify(context, null, 2)}
 
 Beat Instructions: ${substitutedInstructions}
 
+Foreshadowing Guidance:
+- The "foreshadowing.pending" array in the Current State lists future twists or reveals.
+- When it feels natural for this beat, add subtle hints or atmospheric details that allude to these without naming the twist directly.
+- Do NOT spoil the twist; just make the world or NPC behavior gently point in that direction.
+
 Generate content for beat ID: ${beatId}.
 `;
 
@@ -113,7 +132,16 @@ Generate content for beat ID: ${beatId}.
       json: true
     });
 
-    return JSON.parse(completion.content);
+    const result = JSON.parse(completion.content);
+
+    // After successful generation, mark any foreshadowing used for this beat as delivered
+    if (gameState.foreshadowingTracker && pendingForeshadowing.length > 0) {
+      for (const f of pendingForeshadowing) {
+        gameState.foreshadowingTracker.markDelivered(f.id);
+      }
+    }
+
+    return result;
   } catch (error) {
     console.error("LLM generation failed:", error);
     throw error;
