@@ -1,4 +1,4 @@
-import { LOOP_PHASES } from "../../config/constants.js";
+import { LOOP_PHASES, CHOICE_CLASSIFICATIONS } from "../../config/constants.js";
 import { classifyChoice, getChoiceDelta, identifyConsequencePotential } from "../../systems/choice-classifier.js";
 import { evaluateArchetype } from "../../systems/protagonist-archetype.js";
 import { updateWorldTone } from "../../systems/tone-system.js";
