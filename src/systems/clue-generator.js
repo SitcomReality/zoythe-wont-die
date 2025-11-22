@@ -13,7 +13,14 @@ const TESTIMONIAL_CLUES = [
   "A secret diary entry mentioning a meeting at the murder hour."
 ];
 
-export function seedClues({ suspects, killerId, weapon, rng }) {
+const INVESTIGATION_METHODS = {
+  IMMEDIATE: "immediate",      // Visible without action
+  BODY_EXAMINATION: "bodyExamination",
+  SURROUNDINGS: "surroundings",
+  MEMORY_RECALL: "memoryRecall"
+};
+
+export function seedClues({ suspects, killerId, weapon, rng, twistTemplate, deathScenario }) {
   const clues = new Map();
   const suspectList = Array.from(suspects.values());
   const killer = suspects.get(killerId);
@@ -23,19 +30,45 @@ export function seedClues({ suspects, killerId, weapon, rng }) {
     clues.set(data.id, data);
   }
 
-  // 1. Weapon Clue (Tier 1)
+  // 1. Weapon Clue (Tier 1, visibility depends on scenario)
   const weaponClueId = `clue-weapon-${rng.int(1000,9999)}`;
+  const weaponVisibility = (deathScenario && !deathScenario.weaponVisible) 
+    ? INVESTIGATION_METHODS.BODY_EXAMINATION 
+    : INVESTIGATION_METHODS.IMMEDIATE;
+  
   addClue({
     id: weaponClueId,
     label: "The Murder Weapon",
     type: "PHYSICAL",
-    description: `The weapon used to kill you: ${weapon.name}. ${weapon.description}.`,
+    description: weapon ? `${weapon.name}. ${weapon.description}.` : "An unknown method of death.",
     relatedSuspectIds: [], 
     truthValue: true,
-    tier: 1
+    tier: 1,
+    discoveryMethod: weaponVisibility,
+    context: deathScenario ? deathScenario.name : "unknown"
   });
 
-  // 2. Killer Clue (Tier 2 - Direct Link)
+  // 2. Method Clue (scenario-specific)
+  if (deathScenario) {
+    const methodClueId = `clue-method-${rng.int(1000,9999)}`;
+    const methodVisibility = deathScenario.methodVisible 
+      ? INVESTIGATION_METHODS.IMMEDIATE 
+      : INVESTIGATION_METHODS.BODY_EXAMINATION;
+    
+    addClue({
+      id: methodClueId,
+      label: "Manner of Death",
+      type: "PHYSICAL",
+      description: deathScenario.methodDescription,
+      relatedSuspectIds: [],
+      truthValue: true,
+      tier: 1,
+      discoveryMethod: methodVisibility,
+      context: deathScenario.name
+    });
+  }
+
+  // 3. Killer Clue (Tier 2 - Direct Link)
   if (killer) {
     const killerClueId = `clue-killer-${rng.int(1000,9999)}`;
     addClue({
@@ -45,10 +78,12 @@ export function seedClues({ suspects, killerId, weapon, rng }) {
       description: `An item belonging to ${killer.name} was found near where you died.`,
       relatedSuspectIds: [killerId],
       truthValue: true,
-      tier: 2
+      tier: 2,
+      discoveryMethod: INVESTIGATION_METHODS.SURROUNDINGS,
+      context: "evidence"
     });
 
-    // 3. Alibi Breaker (Tier 2 - Testimonial)
+    // 4. Alibi Breaker (Tier 2 - Testimonial)
     const alibiClueId = `clue-alibi-${rng.int(1000,9999)}`;
     addClue({
       id: alibiClueId,
@@ -57,11 +92,13 @@ export function seedClues({ suspects, killerId, weapon, rng }) {
       description: `A wandering spirit claims to have seen ${killer.name} at the scene, contradicting their alibi.`,
       relatedSuspectIds: [killerId],
       truthValue: true,
-      tier: 2
+      tier: 2,
+      discoveryMethod: INVESTIGATION_METHODS.MEMORY_RECALL,
+      context: "testimony"
     });
   }
 
-  // 4. Red Herring (Tier 1)
+  // 5. Red Herring (Tier 1)
   const innocent = rng.pick(suspectList.filter(s => s.id !== killerId));
   if (innocent) {
     const herringId = `clue-herring-${rng.int(1000,9999)}`;
@@ -72,11 +109,13 @@ export function seedClues({ suspects, killerId, weapon, rng }) {
       description: `${innocent.name} was seen arguing with you shortly before your death.`,
       relatedSuspectIds: [innocent.id],
       truthValue: false,
-      tier: 1
+      tier: 1,
+      discoveryMethod: INVESTIGATION_METHODS.IMMEDIATE,
+      context: "red-herring"
     });
   }
 
-  // 5. Generic Atmosphere Clue
+  // 6. Generic Atmosphere Clue
   const atmClueId = `clue-atm-${rng.int(1000,9999)}`;
   addClue({
     id: atmClueId,
@@ -85,12 +124,45 @@ export function seedClues({ suspects, killerId, weapon, rng }) {
     description: "The area reeks of burnt ozone and regret.",
     relatedSuspectIds: [],
     truthValue: true,
-    tier: 1
+    tier: 1,
+    discoveryMethod: INVESTIGATION_METHODS.SURROUNDINGS,
+    context: "atmosphere"
+  });
+
+  // 7. Memory/Recall Clue (victim's last moment)
+  const memoryClueId = `clue-memory-${rng.int(1000,9999)}`;
+  const lastMoments = [
+    "You remember a shadow moving quickly.",
+    "A voice you almost recognized, twisted with emotion.",
+    "The sensation of betrayal. Someone you trusted.",
+    "A flash of something sharp and bright.",
+    "The taste of something bitter.",
+    "Cold hands. Surprising strength."
+  ];
+  addClue({
+    id: memoryClueId,
+    label: "Fragmented Memory",
+    type: "MEMORY",
+    description: rng.pick(lastMoments),
+    relatedSuspectIds: [],
+    truthValue: true,
+    tier: 1,
+    discoveryMethod: INVESTIGATION_METHODS.MEMORY_RECALL,
+    context: "memory"
   });
 
   return { 
     all: clues, 
     discovered: new Set(), 
-    knownSuspects: new Set() 
+    knownSuspects: new Set(),
+    investigationMethods: new Set() // Track which investigation types player has used
   };
+}
+
+export function getCluesByMethod(cluesMap, method) {
+  return Array.from(cluesMap.values()).filter(c => c.discoveryMethod === method);
+}
+
+export function getImmediateClues(cluesMap) {
+  return getCluesByMethod(cluesMap, INVESTIGATION_METHODS.IMMEDIATE);
 }
