@@ -214,6 +214,40 @@ const THESAURUS = {
     "cracked",
     "sundered",
     "split"
+  ],
+
+  // Investigation-specific terminology for Road of Tests, etc.
+  location_type: [
+    "chamber",
+    "hall",
+    "void",
+    "fragment",
+    "memory-shard",
+    "corridor of echoes",
+    "ruined threshold",
+    "broken plaza"
+  ],
+
+  investigation_action: [
+    "examine",
+    "scrutinize",
+    "probe",
+    "analyze",
+    "pick apart",
+    "trace carefully",
+    "dig into",
+    "study"
+  ],
+
+  clue_discovery: [
+    "reveals",
+    "uncovers",
+    "exposes",
+    "hints at",
+    "brings to light",
+    "pulls into focus",
+    "peels back",
+    "lays bare"
   ]
 };
 
