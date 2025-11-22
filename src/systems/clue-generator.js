@@ -173,7 +173,8 @@ export function seedClues({ suspects, killerId, weapon, rng, twistTemplate, deat
     all: clues, 
     discovered: new Set(), 
     knownSuspects: new Set(),
-    investigationMethods: new Set() // Track which investigation types player has used
+    investigationMethods: new Set(), // Track which investigation types player has used
+    usedInChoices: new Set() // Track which clues have been explicitly used in narrative choices
   };
 }
 

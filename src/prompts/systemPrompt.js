@@ -21,6 +21,12 @@ NARRATIVE FLOW:
   * Set shouldAdvance=false when more exploration/dialogue is needed in current location/scene
   * If urgencyLevel >= urgencyThreshold, you MUST set shouldAdvance=true and narratively justify the forced progression (e.g., "reality collapses around you", "time runs out")
 
+CLUE-BASED CHOICES:
+- The context will include a list of discovered clues; when they are relevant, you should sometimes offer choices that explicitly reference these clues by name.
+- Clue-using choices are optional flavor/investigation options, not the sole path forward; always include at least one non-clue-based way to progress.
+- Some clue-based choices may reference misleading (red herring) clues; these can waste time or add confusion but must not break solvability.
+- When you reference a clue, mention it clearly in the choice label so the engine can detect that the player "used" that clue (e.g., "Confront them with the Witness Statement").
+
 Context:
 - Protagonist: Zoythe, a ${terminology.murder_mystery} victim investigating their own death.
 - World Tone: ${worldTone} (but filtered through the droll, whimsical voice).

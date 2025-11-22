@@ -52,7 +52,15 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
     
     const knownClues = Array.from(mystery.clues.discovered).map(id => {
         const clue = mystery.clues.all.get(id);
-        return clue ? `${clue.label}: ${clue.description}` : null;
+        if (!clue) return null;
+        const usedSet = mystery.clues.usedInChoices || new Set();
+        return {
+          label: clue.label,
+          description: clue.description,
+          type: clue.type,
+          context: clue.context,
+          hasBeenUsedInChoice: usedSet.has(id)
+        };
     }).filter(Boolean);
 
     mysteryContext = {
@@ -119,6 +127,13 @@ Foreshadowing Guidance:
 - The "foreshadowing.pending" array in the Current State lists future twists or reveals.
 - When it feels natural for this beat, add subtle hints or atmospheric details that allude to these without naming the twist directly.
 - Do NOT spoil the twist; just make the world or NPC behavior gently point in that direction.
+
+Clue-Based Choices Guidance:
+- The "mystery.knownClues" array in the Current State lists clues the player has already discovered, including which ones have been used in previous choices.
+- When relevant to the scene or NPC, offer 0–2 OPTIONAL choices that explicitly reference one or more of these clues by name (for example: "Ask about the muddy footprints" or "Confront them with the Witness Statement").
+- Prefer using clues where hasBeenUsedInChoice=false so that each clue can shine at least once.
+- Some clue-using choices can be red herrings or partial dead-ends, but they should never make the mystery unsolvable.
+- Do not make clue-using choices the ONLY way to advance; always include at least one non-clue-based option that can move the story forward.
 
 Generate content for beat ID: ${beatId}.
 `;

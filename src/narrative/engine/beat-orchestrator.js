@@ -148,6 +148,21 @@ export function initBeatOrchestrator({ eventBus, gameState, rng }) {
     const currentBeatId = gameState.narrative.lastBeatId;
     const currentBeat = registry.get(currentBeatId);
     
+    // Track clue usage: if a choice label references a known clue, mark that clue as "used in choices"
+    if (gameState.mystery && gameState.mystery.clues && gameState.mystery.clues.all) {
+      const labelText = (choice.label || "").toLowerCase();
+      const usedSet = gameState.mystery.clues.usedInChoices || new Set();
+      gameState.mystery.clues.usedInChoices = usedSet;
+
+      for (const [clueId, clue] of gameState.mystery.clues.all.entries()) {
+        if (!clue || !clue.label) continue;
+        const clueLabel = String(clue.label).toLowerCase();
+        if (clueLabel && labelText.includes(clueLabel.toLowerCase())) {
+          usedSet.add(clueId);
+        }
+      }
+    }
+
     // Classify the choice
     const classifications = classifyChoice(choice);
     
