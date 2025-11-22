@@ -1,7 +1,7 @@
 import { createPlayerState } from "./player-state.js";
 import { createWorldState } from "./world-state.js";
 import { createNarrativeState } from "./narrative-state.js";
-import { HERO_ARCHETYPES } from "../config/constants.js";
+import { HERO_ARCHETYPES, STORY_SCOPE } from "../config/constants.js";
 
 export function createGameState({ rng, config = {} }) {
   const player = createPlayerState({ rng });
@@ -11,6 +11,15 @@ export function createGameState({ rng, config = {} }) {
   // Apply Config Overrides
   if (config.tone) {
     world.tone = config.tone;
+  }
+  
+  // Apply scope (default to random if not provided)
+  if (config.scope) {
+    world.scope = config.scope;
+  } else {
+    // Pick random scope if none provided
+    const scopes = Object.values(STORY_SCOPE);
+    world.scope = rng.pick(scopes);
   }
   
   if (config.archetype) {

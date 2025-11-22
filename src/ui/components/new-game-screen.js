@@ -1,4 +1,4 @@
-import { HERO_ARCHETYPES, WORLD_TONES } from "../../config/constants.js";
+import { HERO_ARCHETYPES, WORLD_TONES, STORY_SCOPE, SCOPE_DETAILS } from "../../config/constants.js";
 
 export function createNewGameScreen({ root, onStart, onCancel }) {
   root.innerHTML = "";
@@ -21,6 +21,16 @@ export function createNewGameScreen({ root, onStart, onCancel }) {
   seedInput.placeholder = "Leave empty for random";
   seedInput.value = "";
   seedGroup.appendChild(seedInput);
+
+  // Story Scope Select
+  const scopeGroup = createFormGroup("Story Scope", "The scale and stakes of your tale");
+  const scopeSelect = document.createElement("select");
+  scopeSelect.className = "form-select";
+  addOption(scopeSelect, "random", "Random");
+  Object.entries(SCOPE_DETAILS).forEach(([key, detail]) => {
+    addOption(scopeSelect, key, `${detail.name} — ${detail.description}`);
+  });
+  scopeGroup.appendChild(scopeSelect);
 
   // Tone Select
   const toneGroup = createFormGroup("World Tone", "The prevailing mood of the Interregnum");
@@ -48,6 +58,7 @@ export function createNewGameScreen({ root, onStart, onCancel }) {
   railGroup.appendChild(railSelect);
 
   form.appendChild(seedGroup);
+  form.appendChild(scopeGroup);
   form.appendChild(toneGroup);
   form.appendChild(arcGroup);
   form.appendChild(railGroup);
@@ -61,6 +72,7 @@ export function createNewGameScreen({ root, onStart, onCancel }) {
   startBtn.onclick = () => {
     onStart({
       seed: seedInput.value || null,
+      scope: scopeSelect.value === "random" ? null : scopeSelect.value,
       tone: toneSelect.value === "random" ? null : toneSelect.value,
       archetype: arcSelect.value === "random" ? null : arcSelect.value,
       railStrictness: railSelect.value

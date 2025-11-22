@@ -80,3 +80,37 @@ export const DIVINE_FACTIONS = {
   PALE_LEDGER: "paleLedger"
 };
 
+export const STORY_SCOPE = {
+  INTIMATE: "intimate",
+  REGIONAL: "regional",
+  NATIONAL: "national",
+  COSMIC: "cosmic"
+};
+
+export const SCOPE_DETAILS = {
+  intimate: {
+    name: "Intimate",
+    description: "A personal story: family, friends, neighbors",
+    maxPowerLevel: 2,
+    scaleDescriptor: "local"
+  },
+  regional: {
+    name: "Regional",
+    description: "A community story: mayors, priests, aristocrats",
+    maxPowerLevel: 4,
+    scaleDescriptor: "regional"
+  },
+  national: {
+    name: "National",
+    description: "A grand story: royalty, generals, religious leaders",
+    maxPowerLevel: 6,
+    scaleDescriptor: "national"
+  },
+  cosmic: {
+    name: "Cosmic",
+    description: "An epic story: gods, divine beings, reality itself",
+    maxPowerLevel: 10,
+    scaleDescriptor: "cosmic"
+  }
+};
+
