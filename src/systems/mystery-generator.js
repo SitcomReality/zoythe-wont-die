@@ -1,6 +1,7 @@
 import { generateCohort } from "./suspect-generator.js";
 import { seedClues } from "./clue-generator.js";
 import { ensureSolvable } from "./mystery-validator.js";
+import { generateDeathScenario } from "./death-scenario-generator.js";
 
 const TWISTS = ["ritual-sacrifice", "jealous-rage", "accidental-godslaying", "cosmic-conspiracy"];
 
@@ -11,38 +12,61 @@ const WEAPONS = [
   { name: "Poisoned Nectar", type: "physical", linkToDeathGod: "Distilled from the rotting divine garden." }
 ];
 
-export function createMystery({ rng }) {
+export function createMystery({ rng, scope = "regional" }) {
   let attempts = 0;
   const MAX_ATTEMPTS = 5;
 
   while (attempts < MAX_ATTEMPTS) {
     attempts++;
     
-    // 1. Select Twist
+    // 1. Generate Death Scenario
+    const deathScenario = generateDeathScenario({ rng, scope });
+
+    // 2. Select Twist
     const twist = rng.pick(TWISTS);
 
-    // 2. Generate Victim Profile
+    // 3. Generate Victim Profile
     const victim = {
       id: "player",
       name: "The Protagonist",
       archetypeHint: "unknown",
-      causeOfDeath: { knownToPlayer: false, description: "Violent dissolution of the soul." },
-      bodyLocation: "The Sanctum of Beginning"
+      causeOfDeath: { 
+        knownToPlayer: deathScenario.methodVisible, 
+        description: deathScenario.methodDescription 
+      },
+      bodyLocation: deathScenario.location,
+      deathScenario: deathScenario.type
     };
 
-    // 3. Generate Weapon
-    const weaponTemplate = rng.pick(WEAPONS);
+    // 4. Generate Weapon
+    // Use scenario's weapon preference if applicable
+    let weaponTemplate = null;
+    if (deathScenario.weapon) {
+      // Scenario specifies weapon type; find matching template or create one
+      weaponTemplate = WEAPONS.find(w => w.name.toLowerCase().includes(deathScenario.weapon.toLowerCase()));
+      if (!weaponTemplate) {
+        // Fallback: generic weapon matching scenario
+        weaponTemplate = {
+          name: deathScenario.weapon,
+          type: "unknown",
+          linkToDeathGod: "Connected to your demise."
+        };
+      }
+    } else {
+      weaponTemplate = rng.pick(WEAPONS);
+    }
+
     const weapon = {
       id: `weapon-${rng.int(100,999)}`,
       ...weaponTemplate,
       description: `A lethal artifact. ${weaponTemplate.linkToDeathGod}`,
-      discoveryTier: 2
+      discoveryTier: deathScenario.investigationLevel + 1
     };
 
-    // 4. Generate Suspects
+    // 5. Generate Suspects
     const suspects = generateCohort({ rng, twistTemplate: twist });
 
-    // 5. Select Killer
+    // 6. Select Killer
     const suspectIds = Array.from(suspects.keys());
     if (suspectIds.length === 0) continue; // Retry if no suspects
     
@@ -50,10 +74,9 @@ export function createMystery({ rng }) {
     const killer = suspects.get(killerId);
     if (killer) {
       killer.alibi.isTrue = false; // Killer lies
-      // We could modify motive here to fit the twist specifically if needed
     }
 
-    // 6. Seed Clues
+    // 7. Seed Clues
     const clueData = seedClues({ suspects, killerId, weapon, rng, twistTemplate: twist });
 
     const mystery = {
@@ -63,6 +86,7 @@ export function createMystery({ rng }) {
       killerId,
       suspects, // Map
       clues: clueData, // { all: Map, discovered: Set, knownSuspects: Set }
+      deathScenario, // Store the scenario
       progress: {
         accusationMade: false,
         correctKillerAccused: false,
@@ -71,7 +95,7 @@ export function createMystery({ rng }) {
       }
     };
 
-    // 7. Validate
+    // 8. Validate
     if (ensureSolvable(mystery)) {
       return mystery;
     }

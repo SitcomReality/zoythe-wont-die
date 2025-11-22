@@ -6,6 +6,7 @@ export function createWorldState({ rng }) {
     activeEffects: [],
     flags: Object.create(null),
     tags: [],
+    deathScenario: null, // Will store death scenario details
     applyDelta(delta) {
       for (const [k, v] of Object.entries(delta)) {
         if (k === "tags" && Array.isArray(v)) {
