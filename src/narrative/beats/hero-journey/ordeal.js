@@ -9,8 +9,22 @@ export function registerOrdealBeat({ beatOrchestrator, gameState }) {
     id,
     async enter({ gameState, previousPage, previousChoice }) {
       const mystery = gameState.mystery;
-      const suspects = Array.from(mystery.suspects.values());
-      const suspectList = suspects.map(s => `- ${s.name} (${s.role})`).join("\n");
+      
+      // Phase 2: Knowledge Tracking - Filter Suspects
+      // Only show suspects we have met OR have found significant clues pointing to
+      const allSuspects = Array.from(mystery.suspects.values());
+      const knownSuspects = allSuspects.filter(s => {
+        const isMet = s.met || (gameState.player.relationships.has(s.id));
+        // Also check if we found the "killer clue" or specific evidence linked to them
+        const cluesFound = Array.from(mystery.clues.discovered).map(id => mystery.clues.all.get(id));
+        const linkedClueFound = cluesFound.some(c => c && c.relatedSuspectIds && c.relatedSuspectIds.includes(s.id));
+        return isMet || linkedClueFound;
+      });
+
+      // Fallback if we somehow know nobody (unlikely by Ordeal)
+      const visibleSuspects = knownSuspects.length > 0 ? knownSuspects : allSuspects;
+
+      const suspectList = visibleSuspects.map(s => `- ${s.name} (${s.role})`).join("\n");
       
       const cluesFound = mystery.clues.discovered.size;
       const urgency = gameState.narrative.urgencyLevel;

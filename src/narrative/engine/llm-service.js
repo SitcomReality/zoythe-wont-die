@@ -44,11 +44,14 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
   // Prepare mystery context (if active)
   let mysteryContext = null;
   if (mystery) {
-    // Filter for known info only
-    const knownSuspects = Array.from(mystery.suspects.values()).map(s => ({
-      name: s.name,
-      role: s.role,
-    }));
+    // Phase 2: Filter for known info only
+    // Only include suspects the player has MET or has a RELATIONSHIP with
+    const knownSuspects = Array.from(mystery.suspects.values())
+      .filter(s => s.met || player.relationships.has(s.id))
+      .map(s => ({
+        name: s.name,
+        role: s.role,
+      }));
     
     const knownClues = Array.from(mystery.clues.discovered).map(id => {
         const clue = mystery.clues.all.get(id);

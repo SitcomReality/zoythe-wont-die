@@ -1,6 +1,5 @@
 import { LOOP_PHASES, CHOICE_CLASSIFICATIONS } from "../../../config/constants.js";
 import { generateBeatContent } from "../../engine/llm-service.js";
-import callToAdventurePrompt from "../../../prompts/hero/callToAdventure.js";
 import { getCluesByMethod, getImmediateClues } from "../../../systems/clue-generator.js";
 
 const INVESTIGATION_METHODS = {
@@ -10,14 +9,14 @@ const INVESTIGATION_METHODS = {
   MEMORY_RECALL: "memoryRecall"
 };
 
-export function registerCallToAdventureBeat({ beatOrchestrator, eventBus }) {
+export function registerCallToAdventureBeat({ beatOrchestrator, eventBus, gameState }) {
   const id = "heroJourney:intro:callToAdventure";
 
   const beat = {
     id,
     async enter({ gameState, terminology, beatRepeatCount, previousPage, previousChoice }) {
       const mystery = gameState.mystery;
-      const weapon = mystery ? mystery.weapon.name : "an unknown weapon";
+      const weapon = mystery ? mystery.weapon : null;
       const deathScenario = gameState.world.deathScenario || (mystery ? mystery.deathScenario : null);
 
       // Initialize discovery tracking if needed
@@ -33,8 +32,28 @@ export function registerCallToAdventureBeat({ beatOrchestrator, eventBus }) {
       let additionalContext = "";
 
       if (!isRepeat) {
-        // First visit: basic scene description
-        beatInstructions = callToAdventurePrompt({ weapon, terminology });
+        // LOGIC-DRIVEN PROMPT CONSTRUCTION (Phase 3)
+        const weaponName = weapon ? weapon.name : "Unknown Weapon";
+        
+        let weaponDescription = "";
+        if (weapon && weapon.discoverable && !deathScenario?.weaponVisible) {
+           weaponDescription = `The weapon is missing. The method of death is clear (${deathScenario?.methodDescription}), but the instrument is gone.`;
+        } else if (weapon) {
+           weaponDescription = `The weapon, ${weaponName}, is present at the scene. ${weapon.description || ""}`;
+        } else {
+           weaponDescription = "The cause of death is not immediately obvious.";
+        }
+
+        beatInstructions = `
+This is the Discovery of the Corpse.
+The protagonist stands over their own mortal remains.
+Scene: ${deathScenario?.methodDescription || "A broken body."}
+Weapon Status: ${weaponDescription}
+Environment: ${deathScenario?.location || "A void-touched ruin"}.
+The reality is ${terminology.glitch}ing.
+The Call: You have been murdered. The system of death is broken. You must solve it.
+Provide choices to investigate the body, the surroundings, or your memories.
+`;
         additionalContext = "This is the protagonist's first moment of awareness. Present the immediate scene.";
       } else {
         // Repeat visit: player is investigating further
