@@ -31,6 +31,8 @@ export async function generateBeatContent({ gameState, instructions, beatId, pre
   };
 
   // Prepare foreshadowing context
+  // Filter pending foreshadowing to only items targeting the current beat (or untargeted ones if we want fallback behavior, but targeted is safer)
+  // The ForeshadowingTracker's getPendingForBeat already handles the filtering logic.
   const pendingForeshadowing = gameState.foreshadowingTracker
     ? gameState.foreshadowingTracker.getPendingForBeat(beatId).map(f => ({
         id: f.id,

@@ -22,6 +22,7 @@ const TWIST_DEFINITIONS = {
       type: "resurrectionTwist",
       summary: "Someone close to you is hiding something dangerous.",
       detail: "Seed small moments where a companion or mentor seems evasive, contradicts themselves, or appears at scenes they shouldn't logically be in. Never state outright that they are the killer; just let their reliability feel slightly off.",
+      targetBeats: ["heroJourney:intro:meetingMentor", "heroJourney:tests:firstTrial"],
       strength: "subtle"
     }
   },
@@ -39,6 +40,7 @@ const TWIST_DEFINITIONS = {
       type: "resurrectionTwist",
       summary: "Your own actions on the night of your death were more aggressive than you remember.",
       detail: "Drop hints that you had a temper, made threats, or were planning something reckless before you died. Let NPCs react to you with a mix of fear and guilt.",
+      targetBeats: ["heroJourney:intro:callToAdventure", "heroJourney:tests:firstTrial"],
       strength: "moderate"
     }
   },
@@ -56,6 +58,7 @@ const TWIST_DEFINITIONS = {
       type: "resurrectionTwist",
       summary: "Someone keeps insisting that some losses are 'necessary' for the greater good.",
       detail: "Let conversations and clues reference looming catastrophes, hard choices, and talk of 'acceptable losses'. A few NPCs might treat your death with an odd air of inevitability.",
+      targetBeats: ["heroJourney:intro:meetingMentor", "heroJourney:tests:firstTrial"],
       strength: "subtle"
     }
   },
@@ -73,6 +76,7 @@ const TWIST_DEFINITIONS = {
       type: "resurrectionTwist",
       summary: "You keep being confused with someone else, or carrying things that don't quite feel like yours.",
       detail: "Include small mix-ups: NPCs call you by the wrong name, react as if they expected someone else, or notice that your belongings don't match your life. Drop one or two object-based hints (cloak, sigil, token).",
+      targetBeats: ["heroJourney:intro:callToAdventure", "heroJourney:tests:firstTrial"],
       strength: "subtle"
     }
   },
@@ -90,6 +94,7 @@ const TWIST_DEFINITIONS = {
       type: "resurrectionTwist",
       summary: "Cosmic forces keep taking an unusual interest in your tiny, messy murder.",
       detail: "Let environments, minor NPCs, or strange omens suggest that gods are watching: repeating symbols, whispers about 'the game', or coincidences that feel too scripted.",
+      targetBeats: ["heroJourney:tests:firstTrial", "heroJourney:ordeal:heartOfInterregnum"],
       strength: "moderate"
     }
   },
@@ -107,82 +112,71 @@ const TWIST_DEFINITIONS = {
 };
 
 /**
- * Select a resurrection twist based on accusation correctness, mystery twist, and RNG.
- * Stores the chosen twist type on narrative.flags.resurrectionTwistType for later reference.
- * Also registers foreshadowing needs for the chosen twist, if applicable.
+ * Determine the Resurrection Truth at the START of the game.
+ * This sets up the deep narrative reality and registers foreshadowing for it.
  * @param {Object} params
  * @param {Object} params.gameState
+ * @param {Object} params.mystery
  * @param {Object} params.rng
- * @param {boolean} params.didAccuseCorrectly
- * @returns {{type:string,label:string,summary:string,beatHint:string,suggestedScene:string}}
  */
-export function selectResurrectionTwist({ gameState, rng, didAccuseCorrectly }) {
-  const existingType = gameState.narrative.flags["resurrectionTwistType"];
-  if (existingType && TWIST_DEFINITIONS[existingType]) {
-    const def = TWIST_DEFINITIONS[existingType];
-    return {
-      type: existingType,
-      label: def.label,
-      summary: def.summary,
-      beatHint: def.beatHint,
-      suggestedScene: rng.pick(def.suggestedScenes)
-    };
+export function determineResurrectionTruth({ gameState, mystery, rng }) {
+  // 1. Analyze Mystery Configuration
+  const baseTwist = mystery.twist;
+  const killer = mystery.suspects.get(mystery.killerId);
+  const isMentorKiller = killer && killer.role === "mentor";
+  const isAllyKiller = killer && killer.role === "ally";
+
+  let weightedPool = [];
+
+  // 2. Assign weights based on mystery setup
+  if (isMentorKiller || isAllyKiller) {
+    weightedPool.push(RESURRECTION_TWISTS.COMPANION_BETRAYAL, RESURRECTION_TWISTS.COMPANION_BETRAYAL);
   }
-
-  const baseMysteryTwist = gameState.mystery ? gameState.mystery.twist : null;
-  const pool = [];
-
-  // Weight twist options based on investigation outcome and base twist
-  if (!didAccuseCorrectly) {
-    // Wrong accusation: more likely to get a sharp reversal
-    pool.push(
-      RESURRECTION_TWISTS.COMPANION_BETRAYAL,
-      RESURRECTION_TWISTS.COMPANION_BETRAYAL,
-      RESURRECTION_TWISTS.MISTAKEN_IDENTITY,
-      RESURRECTION_TWISTS.DIVINE_PAWN
-    );
+  
+  if (baseTwist === "ritual-sacrifice") {
+    weightedPool.push(RESURRECTION_TWISTS.NECESSARY_SACRIFICE, RESURRECTION_TWISTS.NECESSARY_SACRIFICE);
+  } else if (baseTwist === "jealous-rage") {
+    weightedPool.push(RESURRECTION_TWISTS.SELF_DEFENSE, RESURRECTION_TWISTS.NONE);
+  } else if (baseTwist === "accidental-godslaying") {
+    weightedPool.push(RESURRECTION_TWISTS.MISTAKEN_IDENTITY, RESURRECTION_TWISTS.DIVINE_PAWN);
+  } else if (baseTwist === "cosmic-conspiracy") {
+    weightedPool.push(RESURRECTION_TWISTS.DIVINE_PAWN, RESURRECTION_TWISTS.DIVINE_PAWN);
   } else {
-    // Correct accusation: often a thematic or moral twist
-    pool.push(
-      RESURRECTION_TWISTS.NECESSARY_SACRIFICE,
-      RESURRECTION_TWISTS.SELF_DEFENSE,
-      RESURRECTION_TWISTS.DIVINE_PAWN,
-      RESURRECTION_TWISTS.NONE
-    );
+    weightedPool.push(RESURRECTION_TWISTS.NONE, RESURRECTION_TWISTS.NONE, RESURRECTION_TWISTS.NONE);
   }
 
-  // Nudge based on mystery.twist, if present
-  if (baseMysteryTwist === "ritual-sacrifice") {
-    pool.push(RESURRECTION_TWISTS.NECESSARY_SACRIFICE, RESURRECTION_TWISTS.NECESSARY_SACRIFICE);
-  } else if (baseMysteryTwist === "jealous-rage") {
-    pool.push(RESURRECTION_TWISTS.SELF_DEFENSE);
-  } else if (baseMysteryTwist === "accidental-godslaying") {
-    pool.push(RESURRECTION_TWISTS.DIVINE_PAWN, RESURRECTION_TWISTS.MISTAKEN_IDENTITY);
-  } else if (baseMysteryTwist === "cosmic-conspiracy") {
-    pool.push(RESURRECTION_TWISTS.DIVINE_PAWN, RESURRECTION_TWISTS.DIVINE_PAWN);
-  }
+  // 3. Select Truth
+  const chosenType = rng.pick(weightedPool);
+  const def = TWIST_DEFINITIONS[chosenType];
 
-  const chosenType = rng.pick(pool.length ? pool : Object.values(RESURRECTION_TWISTS));
-  const def = TWIST_DEFINITIONS[chosenType] || TWIST_DEFINITIONS[RESURRECTION_TWISTS.NONE];
-
-  // Persist twist type for later reference / epilogue integration
+  // 4. Persist
   gameState.narrative.flags["resurrectionTwistType"] = chosenType;
 
-  // Register foreshadowing need for this twist, if defined and tracker available
+  // 5. Register Foreshadowing immediately so it can appear in early beats
   if (gameState.foreshadowingTracker && def.foreshadowing) {
     gameState.foreshadowingTracker.registerNeed({
       id: def.foreshadowing.id,
       type: def.foreshadowing.type,
       summary: def.foreshadowing.summary,
       detail: def.foreshadowing.detail,
-      // We don't lock to specific beats yet; let Phase 4 later steps refine targeting.
-      targetBeats: null,
+      targetBeats: def.foreshadowing.targetBeats,
       strength: def.foreshadowing.strength
     });
   }
 
+  return chosenType;
+}
+
+/**
+ * Resolve the twist for the actual beat content generation.
+ * Can optionally modify the presentation based on player's accusation accuracy.
+ */
+export function resolveResurrectionScene({ gameState, rng }) {
+  const type = gameState.narrative.flags["resurrectionTwistType"] || RESURRECTION_TWISTS.NONE;
+  const def = TWIST_DEFINITIONS[type] || TWIST_DEFINITIONS[RESURRECTION_TWISTS.NONE];
+  
   return {
-    type: chosenType,
+    type,
     label: def.label,
     summary: def.summary,
     beatHint: def.beatHint,

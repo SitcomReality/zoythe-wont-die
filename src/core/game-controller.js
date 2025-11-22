@@ -8,6 +8,7 @@ import { generateNPCRoster } from "../systems/npc-manager.js";
 import { createRailroadEngine } from "../systems/railroad-engine.js";
 import { registerCoreBeats } from "../narrative/beats/beat-registry.js";
 import { NPC_ROLES } from "../config/constants.js";
+import { determineResurrectionTruth } from "../systems/twist-generator.js";
 
 export function createGameController({ eventBus, ui }) {
   let gameState = null;
@@ -44,6 +45,13 @@ export function createGameController({ eventBus, ui }) {
     
     // Mystery setup with scope awareness
     gameState.mystery = createMystery({ rng, scope: gameState.world.scope });
+    
+    // Initialize the Narrative Truth (Twist & Foreshadowing)
+    determineResurrectionTruth({ 
+      gameState, 
+      mystery: gameState.mystery, 
+      rng 
+    });
     
     // Add death location to memory context
     if (gameState.mystery && gameState.mystery.deathScenario) {

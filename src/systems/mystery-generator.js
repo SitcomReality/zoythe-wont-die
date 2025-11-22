@@ -2,6 +2,7 @@ import { generateCohort } from "./suspect-generator.js";
 import { seedClues } from "./clue-generator.js";
 import { ensureSolvable } from "./mystery-validator.js";
 import { generateDeathScenario } from "./death-scenario-generator.js";
+import { determineResurrectionTruth } from "./twist-generator.js";
 
 const TWISTS = ["ritual-sacrifice", "jealous-rage", "accidental-godslaying", "cosmic-conspiracy"];
 
@@ -93,7 +94,7 @@ export function createMystery({ rng, scope = "regional" }) {
       suspects,
       clues: clueData,
       deathScenario,
-      scope, // Store scope on mystery for context
+      scope,
       progress: {
         accusationMade: false,
         correctKillerAccused: false,
@@ -109,3 +110,7 @@ export function createMystery({ rng, scope = "regional" }) {
 
   throw new Error("Failed to generate valid mystery after max attempts");
 }
+
+// Note: We cannot access gameState inside createMystery to call determineResurrectionTruth directly
+// because createMystery returns the mystery object which is THEN attached to gameState.
+// We need to call determineResurrectionTruth externally after mystery creation.

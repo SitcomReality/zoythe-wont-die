@@ -53,8 +53,15 @@ export function createForeshadowingTracker() {
     getPendingForBeat(beatId) {
       return this.entries.filter(e => {
         if (e.delivered) return false;
-        if (!e.targetBeats || !e.targetBeats.length) return true;
-        return e.targetBeats.includes(beatId);
+        
+        // If explicit targets are set, only return if beatId matches
+        if (e.targetBeats && Array.isArray(e.targetBeats) && e.targetBeats.length > 0) {
+          return e.targetBeats.includes(beatId);
+        }
+        
+        // If no targets set, it's a "global" hint that can drop anywhere
+        // (Be careful with this, usually better to have targets)
+        return true;
       });
     },
 
